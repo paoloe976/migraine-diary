@@ -1,4 +1,4 @@
-let currentMonthIndex = 0;
+let currentMonth;
 let monthsData = new Map(); // Mappa di mesi -> array di dati
 
 // Funzione per estrarre la data da una stringa in formato ISO
@@ -167,9 +167,8 @@ async function loadAllFiles(files) {
         
         // Se ci sono dati, mostra il primo mese
         if (monthsData.size > 0) {
-            currentMonthIndex = 0;
             const months = Array.from(monthsData.keys());
-            displayMonth(months[currentMonthIndex]);
+            displayMonth(months[0]);
             document.querySelector('.navigation-controls').style.display = 'flex';
             
             console.log(`Modifiche completate: ${newEntriesCount} nuove, ${updatedEntriesCount} aggiornate`);
@@ -232,26 +231,43 @@ function displayMonth(monthKey) {
     const tbody = table.querySelector('tbody');
 
     // Per ogni giorno del mese
-    monthData.forEach(entry => {
-        const date = new Date(entry.date + 'T00:00:00');
-        const dayOfWeek = date.getDay(); // 0 = domenica, 1 = lunedì, ...
-        
-        const rowClasses = [
-            dayOfWeek === 0 ? 'end-of-week' : '',
-            dayOfWeek === 1 ? 'start-of-week' : '',
-            'clickable-row'
-        ].filter(Boolean).join(' ');
+    const [year, month] = monthKey.split('-');
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+    const isCurrentMonth = parseInt(year) === currentYear && parseInt(month) === currentMonth;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${monthKey}-${String(day).padStart(2, '0')}`;
+        const entry = monthData.find(e => e.date === date) || { 
+            date,
+            intensity: '',
+            location: '',
+            medication: '',
+            notes: ''
+        };
 
         const row = document.createElement('tr');
-        row.className = rowClasses;
-        row.setAttribute('data-date', entry.date);
+        row.setAttribute('data-date', date);
+        row.classList.add('clickable-row');
 
-        const formattedDate = formatDateFromDate(date);
-        const dayName = getDayName(date);
+        // Aggiungi la classe current-day se è il giorno corrente
+        if (isCurrentMonth && day === currentDay) {
+            row.classList.add('current-day');
+        }
+
+        const dateObj = new Date(entry.date + 'T00:00:00');
+        const dayOfWeek = dateObj.getDay(); // 0 = domenica, 1 = lunedì, ...
+        
+        // Aggiungi le classi per la separazione delle settimane
+        if (dayOfWeek === 0) row.classList.add('end-of-week');
+        if (dayOfWeek === 1) row.classList.add('start-of-week');
 
         row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>${dayName}</td>
+            <td>${formatDateFromDate(dateObj)}</td>
+            <td>${getDayName(dateObj)}</td>
             <td>${createIntensityBar(entry.intensity)}</td>
             <td>${entry.location || ''}</td>
             <td>${entry.medication || ''}</td>
@@ -259,7 +275,7 @@ function displayMonth(monthKey) {
         `;
 
         tbody.appendChild(row);
-    });
+    }
 
     // Aggiorna il contenuto
     container.innerHTML = '';
@@ -332,15 +348,15 @@ function isStripedDay(year, month, day) {
 // Funzione per aggiornare i controlli di navigazione
 function updateNavigationControls() {
     const months = Array.from(monthsData.keys());
-    const currentMonthKey = months[currentMonthIndex];
+    const currentMonthKey = currentMonth;
     const [year, month] = currentMonthKey.split('-').map(num => parseInt(num));
     
     const prevButton = document.getElementById('prevMonth');
     const nextButton = document.getElementById('nextMonth');
     const currentMonthSpan = document.getElementById('currentMonth');
 
-    prevButton.disabled = currentMonthIndex <= 0;
-    nextButton.disabled = currentMonthIndex >= months.length - 1;
+    prevButton.disabled = currentMonthKey <= months[0];
+    nextButton.disabled = currentMonthKey >= months[months.length - 1];
     currentMonthSpan.textContent = formatMonthTitle(currentMonthKey);
 }
 
@@ -379,14 +395,12 @@ function exportCurrentMonth() {
         5: [204, 0, 0],     // #CC0000
     };
     
-    const months = Array.from(monthsData.keys());
-    const currentMonthKey = months[currentMonthIndex];
-    const [year, month] = currentMonthKey.split('-').map(num => parseInt(num));
-    const monthData = monthsData.get(currentMonthKey) || [];
+    const monthData = monthsData.get(currentMonth) || [];
+    const [year, month] = currentMonth.split('-');
     
     // Titolo
     doc.setFontSize(14);
-    const title = formatMonthTitle(currentMonthKey);
+    const title = formatMonthTitle(currentMonth);
     doc.text(title, 10, 15);
     
     // Conta solo le righe che hanno almeno un campo compilato
@@ -564,7 +578,7 @@ async function saveAllData() {
         // Aggiorna la visualizzazione dopo il salvataggio
         if (monthsData.size > 0) {
             const months = Array.from(monthsData.keys());
-            displayMonth(months[currentMonthIndex]);
+            displayMonth(months[0]);
         }
     } catch (error) {
         console.error('Errore nel salvataggio dei dati:', error);
@@ -586,8 +600,8 @@ async function loadDataFromFile() {
         // Se ci sono dati, mostra il primo mese
         if (monthsData.size > 0) {
             const months = Array.from(monthsData.keys()).sort();
-            currentMonthIndex = 0;
-            displayMonth(months[currentMonthIndex]);
+            currentMonth = months[0];
+            displayMonth(currentMonth);
             document.querySelector('.navigation-controls').style.display = 'flex';
         }
     } catch (error) {
@@ -599,6 +613,12 @@ async function loadDataFromFile() {
 // Carica i dati all'avvio
 document.addEventListener('DOMContentLoaded', async () => {
     await loadDataFromFile();
+    
+    // Imposta e mostra il mese corrente
+    const today = new Date();
+    currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    displayMonth(currentMonth);
+    
     setupMonthNavigation();
     setupExportPdf();
     setupFileInput();
@@ -629,24 +649,39 @@ function setupFileInput() {
 }
 
 function setupMonthNavigation() {
-    document.getElementById('prevMonth').addEventListener('click', () => {
-        if (currentMonthIndex > 0) {
-            currentMonthIndex--;
-            const months = Array.from(monthsData.keys());
-            displayMonth(months[currentMonthIndex]);
+    const prevButton = document.getElementById('prevMonth');
+    const nextButton = document.getElementById('nextMonth');
+
+    prevButton.addEventListener('click', () => {
+        const [year, month] = currentMonth.split('-');
+        let newMonth = parseInt(month) - 1;
+        let newYear = parseInt(year);
+
+        if (newMonth < 1) {
+            newMonth = 12;
+            newYear--;
         }
+
+        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+        displayMonth(currentMonth);
     });
 
-    document.getElementById('nextMonth').addEventListener('click', () => {
-        const months = Array.from(monthsData.keys());
-        if (currentMonthIndex < months.length - 1) {
-            currentMonthIndex++;
-            displayMonth(months[currentMonthIndex]);
+    nextButton.addEventListener('click', () => {
+        const [year, month] = currentMonth.split('-');
+        let newMonth = parseInt(month) + 1;
+        let newYear = parseInt(year);
+
+        if (newMonth > 12) {
+            newMonth = 1;
+            newYear++;
         }
+
+        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+        displayMonth(currentMonth);
     });
 }
 
-// Funzione per creare l'input dell'intensità
+// Funzione per creare la barra dell'intensità
 function createIntensityInput(value) {
     return `
         <select class="edit-input" name="intensity">
@@ -660,7 +695,7 @@ function createIntensityInput(value) {
     `;
 }
 
-// Funzione per creare l'input della sede
+// Funzione per creare la barra dell'intensità
 function createLocationInput(value) {
     return `
         <select class="edit-input" name="location">

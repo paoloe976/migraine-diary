@@ -399,12 +399,30 @@ input[list]::-webkit-calendar-picker-indicator {
 }
 
 /* Stile per il giorno corrente */
-.current-day {
+.current-day td:first-child {
+    border-left: 3px solid var(--primary-color);
+}
+
+.current-day td {
     font-weight: bold;
 }
 
-tr.current-day {
-    border-left: 3px solid #1976d2;
+/* Mantieni il colore di sfondo per le righe alternate anche quando è il giorno corrente */
+tbody tr.current-day:nth-child(even) td {
+    background-color: var(--striped-color);
+}
+
+tbody tr.current-day:nth-child(odd) td {
+    background-color: white;
+}
+
+/* Hover per il giorno corrente */
+tbody tr.current-day:nth-child(odd):hover td {
+    background-color: var(--row-hover-color);
+}
+
+tbody tr.current-day:nth-child(even):hover td {
+    background-color: var(--striped-hover-color);
 }
 
 .edit-container {
