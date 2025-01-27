@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diario delle Cefalee</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --background-color: #ffffff;
+            --card-background: #ffffff;
+            --text-color: #333333;
+            --border-radius: 8px;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --striped-color: #e8f1ff;
+            --striped-hover-color: #dae7fb;
+            --weekend-text-color: #2563eb;
+            --border-color: #e5e7eb;
+            --week-border-color: #64748b;
+            --week-separator-height: 25px;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .file-upload {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload label {
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+
+        .file-upload label:hover {
+            background: #357abd;
+        }
+
+        .stats-card {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid var(--border-color);
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Righe alternate */
+        tbody tr:nth-child(even) {
+            background-color: var(--striped-color);
+        }
+
+        tbody tr:nth-child(even):hover {
+            background-color: var(--striped-hover-color);
+        }
+
+        /* Stili per la separazione delle settimane */
+        tr.end-of-week td {
+            border-bottom: 3px solid var(--week-border-color);
+        }
+
+        tr.end-of-week + tr {
+            border-top: var(--week-separator-height) solid var(--background-color);
+        }
+
+        /* Stili per il weekend */
+        .weekend-day {
+            color: var(--weekend-text-color) !important;
+            font-weight: 500;
+        }
+
+        .weekday {
+            font-weight: 500;
+            color: #666;
+        }
+
+        /* Stili per l'indicatore di intensità */
+        .intensity-indicator {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .intensity-bar {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .intensity-1 { background: #4CAF50; }
+        .intensity-2 { background: #8BC34A; }
+        .intensity-3 { background: #FFC107; }
+        .intensity-4 { background: #FF9800; }
+        .intensity-5 { background: #FF5722; }
+        .intensity-6 { background: #F44336; }
+
+        .location-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .location-D {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .location-U {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Diario delle Cefalee</h1>
+        
+        <div class="file-upload">
+            <label for="fileInput">
+                📁 Carica file CSV
+                <input type="file" id="fileInput" accept="text/csv">
+            </label>
+        </div>
+
+        <div class="stats-card">
+            <div class="stat-value" id="headacheCount">0</div>
+            <div class="stat-label">Cefalee nel Mese</div>
+        </div>
+
+        <table id="headacheTable">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Giorno</th>
+                    <th>Intensità</th>
+                    <th>Sede</th>
+                    <th>Farmaco Utilizzato</th>
+                    <th>Note</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- I dati delle cefalee verranno inseriti qui -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Array dei giorni della settimana in italiano, partendo da Lunedì
+        const weekdays = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'];
+
+        // Funzione per ottenere il giorno della settimana (0 = Lunedì, 6 = Domenica)
+        function getWeekday(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            const dayOfWeek = date.getDay();
+            // Converti da domenica = 0 a lunedì = 0
+            return weekdays[dayOfWeek === 0 ? 6 : dayOfWeek - 1];
+        }
+
+        // Funzione per verificare se è weekend
+        function isWeekend(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            const dayOfWeek = date.getDay();
+            return dayOfWeek === 0 || dayOfWeek === 6;
+        }
+
+        // Funzione per verificare se è l'ultimo giorno della settimana (Domenica)
+        function isEndOfWeek(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            return date.getDay() === 0;
+        }
+
+        // Funzione per verificare se è il primo giorno della settimana (Lunedì)
+        function isStartOfWeek(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            return date.getDay() === 1;
+        }
+
+        // Funzione per creare una riga vuota per una data
+        function createEmptyRow(date, weekday, isWeekendDay, endOfWeek, startOfWeek) {
+            const row = document.createElement('tr');
+            if (endOfWeek) {
+                row.classList.add('end-of-week');
+            }
+            if (startOfWeek) {
+                row.classList.add('start-of-week');
+            }
+            row.innerHTML = `
+                <td>${date}</td>
+                <td class="${isWeekendDay ? 'weekend-day' : 'weekday'}">${weekday}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            `;
+            return row;
+        }
+
+        // Funzione per formattare la data
+        function formatDate(year, month, day) {
+            return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const contents = e.target.result;
+                    const lines = contents.split('\n');
+                    let headacheCount = 0;
+                    const tbody = document.getElementById('headacheTable').getElementsByTagName('tbody')[0];
+                    tbody.innerHTML = ''; // Clear existing data
+
+                    // Creare un oggetto per mappare le date con i dati delle cefalee
+                    const headacheData = {};
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            const [date, intensity, location, medication, notes] = line.split(',');
+                            headacheData[date] = { intensity, location, medication, notes };
+                        }
+                    });
+
+                    // Generare tutte le date del mese
+                    const year = 2024;
+                    const month = 12;
+                    const daysInMonth = new Date(year, month, 0).getDate();
+
+                    // Prepara array con tutti i giorni del mese
+                    const monthData = [];
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const date = new Date(year, month - 1, day);
+                        const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                        const formattedDate = formatDate(year, month, day);
+                        const dayOfWeek = date.getDay(); // 0 = domenica, 6 = sabato
+                        
+                        monthData.push({
+                            date: formattedDate,
+                            dayOfWeek: dayOfWeek,
+                            weekday: weekdays[dayOfWeek === 0 ? 6 : dayOfWeek - 1],
+                            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
+                            isEndOfWeek: dayOfWeek === 0,
+                            isStartOfWeek: dayOfWeek === 1,
+                            headacheData: headacheData[dateStr]
+                        });
+                    }
+
+                    // Raggruppa i giorni in settimane
+                    const weeks = [];
+                    let currentWeek = [];
+                    monthData.forEach((dayData) => {
+                        if (dayData.isStartOfWeek && currentWeek.length > 0) {
+                            weeks.push(currentWeek);
+                            currentWeek = [];
+                        }
+                        currentWeek.push(dayData);
+                        if (dayData.isEndOfWeek) {
+                            weeks.push(currentWeek);
+                            currentWeek = [];
+                        }
+                    });
+                    if (currentWeek.length > 0) {
+                        weeks.push(currentWeek);
+                    }
+
+                    // Genera le righe della tabella per settimana
+                    weeks.forEach((week, weekIndex) => {
+                        week.forEach((dayData) => {
+                            const row = document.createElement('tr');
+                            
+                            if (dayData.isEndOfWeek) {
+                                row.classList.add('end-of-week');
+                            }
+                            if (dayData.isStartOfWeek) {
+                                row.classList.add('start-of-week');
+                            }
+
+                            if (dayData.headacheData) {
+                                const { intensity, location, medication, notes } = dayData.headacheData;
+                                const intensityValue = parseInt(intensity);
+                                
+                                row.innerHTML = `
+                                    <td>${dayData.date}</td>
+                                    <td class="${dayData.isWeekend ? 'weekend-day' : 'weekday'}">${dayData.weekday}</td>
+                                    <td>
+                                        <div class="intensity-indicator">
+                                            <div class="intensity-bar intensity-${intensityValue}" 
+                                                 style="width: ${(intensityValue/6)*100}%">
+                                            </div>
+                                        </div>
+                                        <small style="color: #666;">${intensityValue}/6</small>
+                                    </td>
+                                    <td><span class="location-badge location-${location.trim()}">${location.trim() === 'D' ? 'Diffusa' : 'Unilaterale'}</span></td>
+                                    <td>${medication}</td>
+                                    <td>${notes}</td>
+                                `;
+                                headacheCount++;
+                            } else {
+                                row.innerHTML = `
+                                    <td>${dayData.date}</td>
+                                    <td class="${dayData.isWeekend ? 'weekend-day' : 'weekday'}">${dayData.weekday}</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                `;
+                            }
+                            
+                            tbody.appendChild(row);
+                        });
+                    });
+
+                    document.getElementById('headacheCount').textContent = headacheCount;
+                };
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+</html>
