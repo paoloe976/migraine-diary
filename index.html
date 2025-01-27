@@ -551,7 +551,7 @@
             const headers = [
                 [
                     'Giorno',
-                    { content: 'Intensità', colSpan: 2 },
+                    'Intensità',
                     'Sede',
                     'Farmaco',
                     'Note'
@@ -567,53 +567,31 @@
             const rows = [];
             const daysInMonth = new Date(year, month, 0).getDate();
 
-            // Funzione per disegnare la barra dell'intensità
+            // Funzione per disegnare la barra dell'intensità con numero
             function drawIntensityBar(intensity, x, y, width, cellHeight) {
-                if (intensity === '-' || !intensityColors[intensity]) return;
+                if (intensity === '' || !intensityColors[intensity]) return;
                 
                 const color = intensityColors[intensity];
-                const fillWidth = (width * intensity) / 6;
-                const barHeight = 3;
+                const fillWidth = (width * intensity) / 6;  // Lunghezza proporzionale all'intensità
+                const barHeight = 4.5;  // Aumentata da 3 a 4.5
                 
                 // Calcola la posizione y per centrare la barra
                 const yCenter = y + (cellHeight - barHeight) / 2;
                 
                 // Salva lo stato corrente
                 const currentFillColor = doc.getFillColor();
-                
-                // Disegna la barra
-                doc.setFillColor(color[0], color[1], color[2]);
-                doc.rect(x, yCenter, fillWidth, barHeight, 'F');
-                
-                // Ripristina il colore originale
-                doc.setFillColor(currentFillColor);
-            }
-
-            // Funzione per disegnare un chip circolare con il numero
-            function drawIntensityChip(intensity, x, y, cellWidth, cellHeight) {
-                if (intensity === '' || !intensityColors[intensity]) return;
-                
-                const color = intensityColors[intensity];
-                const radius = 2.75;
-                const centerX = x + cellWidth / 2;
-                const centerY = y + cellHeight / 2;
-                
-                // Salva lo stato corrente
-                const currentFillColor = doc.getFillColor();
                 const currentTextColor = doc.getTextColor();
                 const currentFontSize = doc.getFontSize();
                 
-                // Disegna il cerchio colorato
+                // Disegna la barra
                 doc.setFillColor(color[0], color[1], color[2]);
-                doc.circle(centerX, centerY, radius, 'F');
+                doc.roundedRect(x, yCenter, fillWidth, barHeight, barHeight/2, barHeight/2, 'F');
                 
-                // Aggiungi il numero in bianco e grassetto
+                // Aggiungi il numero in bianco
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                
-                // Disegna il numero
-                doc.text(intensity.toString(), centerX, centerY, { 
+                doc.text(intensity.toString(), x + fillWidth/2, yCenter + barHeight/2, { 
                     align: 'center', 
                     baseline: 'middle'
                 });
@@ -633,8 +611,7 @@
                     const data = headachesByDate[dateStr];
                     rows.push([
                         formattedDate,
-                        data.intensity, // Numero dell'intensità
-                        {content: '', intensity: data.intensity}, // Placeholder per la barra
+                        {content: '', intensity: data.intensity},
                         data.location.trim(),
                         data.medication,
                         data.notes
@@ -642,7 +619,6 @@
                 } else {
                     rows.push([
                         formattedDate,
-                        '',
                         '',
                         '',
                         '',
@@ -656,6 +632,7 @@
                 head: headers,
                 body: rows,
                 startY: 25,
+                margin: { left: 10, right: 10 },  
                 styles: {
                     fontSize: 9,
                     cellPadding: { top: 2, right: 2, bottom: 2, left: 2 },
@@ -663,7 +640,7 @@
                     font: 'helvetica',
                     valign: 'middle',
                     halign: 'center',
-                    lineWidth: 0.1  // Bordo più sottile per tutta la tabella
+                    lineWidth: 0.1
                 },
                 headStyles: {
                     fontSize: 10,
@@ -673,53 +650,17 @@
                     valign: 'middle'
                 },
                 columnStyles: {
-                    0: { cellWidth: 20 },    // Giorno
-                    1: { 
-                        cellWidth: 8,       // Numero intensità
-                        cellPadding: { right: 0 }
-                    },
-                    2: { 
-                        cellWidth: 20,       // Barra intensità
-                        cellPadding: { left: 0 }
-                    },
-                    3: { cellWidth: 15 },    // Sede
-                    4: { cellWidth: 40 },    // Farmaco
-                    5: { cellWidth: 60 }     // Note
-                },
-                didParseCell: function(data) {
-                    // Rimuovi solo il bordo verticale tra le celle dell'intensità
-                    if (data.column.index === 1) {
-                        data.cell.styles.lineWidth = { 
-                            right: 0,
-                            left: 0.1,
-                            top: 0.1,
-                            bottom: 0.1
-                        };
-                    } else if (data.column.index === 2) {
-                        data.cell.styles.lineWidth = { 
-                            left: 0,
-                            right: 0.1,
-                            top: 0.1,
-                            bottom: 0.1
-                        };
-                    }
+                    0: { cellWidth: 20 },    
+                    1: { cellWidth: 25 },    
+                    2: { cellWidth: 15 },    
+                    3: { cellWidth: 40 },    
+                    4: { cellWidth: 60 }     
                 },
                 didDrawCell: function(data) {
-                    // Disegna il chip con il numero dell'intensità
-                    if (data.column.index === 1 && data.row.raw[1] && data.row.raw[1] !== '') {
-                        drawIntensityChip(
-                            data.row.raw[1],
-                            data.cell.x + 0.5, // Piccolo offset a destra
-                            data.cell.y,
-                            data.cell.width,
-                            data.cell.height
-                        );
-                    }
-                    
-                    // Disegna la barra dell'intensità
-                    if (data.column.index === 2 && data.row.raw[2] && data.row.raw[2].intensity) {
-                        const intensity = data.row.raw[2].intensity;
-                        const padding = 1.5;  // Padding uniforme
+                    // Disegna la barra dell'intensità con numero
+                    if (data.column.index === 1 && data.row.raw[1] && data.row.raw[1].intensity) {
+                        const intensity = data.row.raw[1].intensity;
+                        const padding = 1.5;
                         drawIntensityBar(
                             intensity,
                             data.cell.x + padding,
@@ -730,7 +671,6 @@
                     }
                 },
                 theme: 'grid',
-                margin: { top: 10, right: 10, bottom: 10, left: 10 },
                 tableWidth: 'auto'
             });
 
