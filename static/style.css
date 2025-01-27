@@ -415,20 +415,46 @@ tr.current-day {
     background-color: #f5f5f5;
 }
 
-/* Stili per il contenitore di modifica */
 .edit-container {
     display: flex;
+    align-items: center;
     gap: 8px;
-    align-items: flex-start;
 }
 
-.edit-input {
-    flex: 1;
-    min-width: 0;
-    padding: 4px 8px;
-    border: 1px solid #ccc;
+.edit-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.save-btn, .clear-btn {
+    padding: 4px;
+    min-width: 28px;
+    height: 28px;
+    border: none;
     border-radius: 4px;
+    cursor: pointer;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.save-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.clear-btn {
+    background-color: #e0e0e0;
+    color: #666;
+}
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
+.clear-btn:hover {
+    background-color: #d5d5d5;
 }
 
 .notes-input {

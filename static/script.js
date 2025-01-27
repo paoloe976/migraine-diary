@@ -386,11 +386,21 @@ function exportCurrentMonth() {
     
     // Titolo
     doc.setFontSize(14);
-    doc.text(formatMonthTitle(currentMonthKey), 10, 15);
+    const title = formatMonthTitle(currentMonthKey);
+    doc.text(title, 10, 15);
     
-    // Sottotitolo con conteggio
-    doc.setFontSize(8);
-    doc.text(`Totale cefalee: ${monthData.length}`, 10, 20);
+    // Conta solo le righe che hanno almeno un campo compilato
+    const headacheCount = monthData.filter(data => 
+        data.intensity || 
+        data.location || 
+        data.medication || 
+        data.notes
+    ).length;
+    
+    // Contatore sulla stessa riga del titolo
+    doc.setFontSize(10);
+    const countText = `Totale cefalee: ${headacheCount}`;
+    doc.text(countText, doc.internal.pageSize.width - 10, 15, { align: 'right' });
 
     // Prepara i dati per la tabella
     const headers = [
@@ -452,11 +462,14 @@ function exportCurrentMonth() {
     for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
         const formattedDate = day.toString().padStart(2, '0');
+        const date = new Date(year, month - 1, day);
+        const dayName = getDayName(date);
         
         if (dateStr in headachesByDate) {
             const data = headachesByDate[dateStr];
             rows.push([
                 formattedDate,
+                dayName,
                 {content: '', intensity: data.intensity},
                 data.location.trim(),
                 data.medication,
@@ -465,6 +478,7 @@ function exportCurrentMonth() {
         } else {
             rows.push([
                 formattedDate,
+                dayName,
                 '',
                 '',
                 '',
@@ -477,7 +491,7 @@ function exportCurrentMonth() {
     doc.autoTable({
         head: headers,
         body: rows,
-        startY: 25,
+        startY: 20,  // Ridotto da 25 a 20
         margin: { left: 10, right: 10 },  
         styles: {
             fontSize: 9,
@@ -496,11 +510,12 @@ function exportCurrentMonth() {
             valign: 'middle'
         },
         columnStyles: {
-            0: { cellWidth: 20 },    
-            1: { cellWidth: 25 },    
-            2: { cellWidth: 20 },    
-            3: { cellWidth: 40 },    
-            4: { cellWidth: 60 }     
+            0: { cellWidth: 15 },    // Data
+            1: { cellWidth: 20 },    // Giorno
+            2: { cellWidth: 20 },    // Intensità
+            3: { cellWidth: 25 },    // Sede
+            4: { cellWidth: 30 },    // Farmaco
+            5: { cellWidth: 80 }     // Note
         },
         didDrawCell: function(data) {
             // Disegna la barra dell'intensità con numero
@@ -718,6 +733,20 @@ function saveRow(row) {
     displayMonth(monthKey);
 }
 
+// Funzione per cancellare i valori di una riga
+function clearValues(row) {
+    // Svuota i campi
+    const intensitySelect = row.querySelector('select[name="intensity"]');
+    const locationSelect = row.querySelector('select[name="location"]');
+    const medicationInput = row.querySelector('input[name="medication"]');
+    const notesInput = row.querySelector('input.notes-input');
+
+    if (intensitySelect) intensitySelect.value = '';
+    if (locationSelect) locationSelect.value = '';
+    if (medicationInput) medicationInput.value = '';
+    if (notesInput) notesInput.value = '';
+}
+
 // Funzione per annullare la modifica di una riga
 function cancelEdit(row) {
     const date = row.getAttribute('data-date');
@@ -765,14 +794,32 @@ function setupMedicationAutocomplete(input) {
         document.body.appendChild(datalist);
     }
 
-    // Aggiorna le opzioni con i farmaci usati
-    const medications = getUsedMedications();
-    datalist.innerHTML = medications
-        .map(med => `<option value="${med}">`)
-        .join('');
-
     // Collega il datalist all'input
     input.setAttribute('list', 'medications-list');
+
+    // Aggiorna la lista quando l'utente digita
+    input.addEventListener('input', () => {
+        // Svuota la lista
+        datalist.innerHTML = '';
+
+        // Se c'è almeno un carattere, mostra i suggerimenti
+        if (input.value.trim().length > 0) {
+            const medications = getUsedMedications();
+            const searchTerm = input.value.toLowerCase();
+            
+            // Filtra i farmaci che iniziano con il termine di ricerca
+            const filteredMedications = medications.filter(med => 
+                med.toLowerCase().startsWith(searchTerm)
+            );
+
+            // Aggiungi i farmaci filtrati alla lista
+            filteredMedications.forEach(med => {
+                const option = document.createElement('option');
+                option.value = med;
+                datalist.appendChild(option);
+            });
+        }
+    });
 }
 
 // Array dei giorni della settimana in italiano, partendo da Lunedì
@@ -872,17 +919,23 @@ function makeRowEditable(row) {
             <input type="text" class="edit-input notes-input" value="${entry.notes === undefined ? '' : entry.notes}" style="width: 100%;">
             <div class="edit-buttons">
                 <button class="save-btn" title="Salva">✓</button>
-                <button class="cancel-btn" title="Annulla">✗</button>
+                <button class="clear-btn" title="Svuota campi">⌫</button>
             </div>
         </div>
     `;
 
     // Aggiungi gli event listener per i pulsanti
     const saveBtn = cells[5].querySelector('.save-btn');
-    const cancelBtn = cells[5].querySelector('.cancel-btn');
+    const clearBtn = cells[5].querySelector('.clear-btn');
     
     saveBtn.addEventListener('click', () => saveRow(row));
-    cancelBtn.addEventListener('click', () => cancelEdit(row));
+    clearBtn.addEventListener('click', () => clearValues(row));
+
+    // Imposta l'autocompletamento per il farmaco
+    const medicationInput = cells[4].querySelector('input[name="medication"]');
+    if (medicationInput) {
+        setupMedicationAutocomplete(medicationInput);
+    }
 
     // Focus sul primo input
     const firstInput = row.querySelector('input, select');
