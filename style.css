@@ -1,0 +1,332 @@
+:root {
+    --primary-color: #4a90e2;
+    --background-color: #ffffff;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --border-radius: 8px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --intensity-1: #e3f2fd;
+    --intensity-6: #1565c0;
+    --striped-color: #e8f1ff;
+    --striped-hover-color: #dae7fb;
+    --weekend-text-color: #2563eb;
+    --border-color: #e5e7eb;
+    --week-border-color: #64748b;
+    --week-separator-height: 25px;
+    --nav-button-color: #4a90e2;
+    --nav-button-hover: #357abd;
+    --nav-button-disabled: #cccccc;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+.stats-card {
+    background: var(--card-background);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 2.5em;
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 1.1em;
+    margin-top: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid var(--border-color);
+}
+
+th:last-child, td:last-child {
+    border-right: none;
+}
+
+th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+/* Righe alternate */
+tbody tr:nth-child(even) {
+    background-color: var(--striped-color);
+}
+
+tbody tr:nth-child(even):hover {
+    background-color: var(--striped-hover-color);
+}
+
+/* Stili per la separazione delle settimane */
+tr.end-of-week td {
+    border-bottom: 3px solid var(--week-border-color);
+}
+
+tr.end-of-week + tr {
+    border-top: var(--week-separator-height) solid var(--background-color);
+}
+
+/* Stili per il weekend */
+.weekend-day {
+    color: var(--weekend-text-color) !important;
+    font-weight: 500;
+}
+
+.weekday {
+    font-weight: 500;
+    color: #666;
+}
+
+/* Stili per l'indicatore di intensità */
+.intensity-indicator {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.intensity-bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.intensity-1 { background: #4CAF50; }
+.intensity-2 { background: #8BC34A; }
+.intensity-3 { background: #FFC107; }
+.intensity-4 { background: #FF9800; }
+.intensity-5 { background: #FF5722; }
+.intensity-6 { background: #F44336; }
+
+.location-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.location-D {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.location-U {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+.navigation-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 0 20px 0;
+    padding: 10px;
+    background-color: var(--card-background);
+    box-shadow: var(--box-shadow);
+    border-radius: var(--border-radius);
+}
+
+.nav-button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--border-radius);
+    background-color: var(--nav-button-color);
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-button .arrow {
+    font-size: 1.2em;
+}
+
+.nav-button:hover:not(:disabled), .export-button:hover {
+    background-color: var(--nav-button-hover);
+}
+
+.nav-button:disabled {
+    background-color: var(--nav-button-disabled);
+    cursor: not-allowed;
+}
+
+.export-button {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 2rem auto;
+    padding: 12px 24px;
+    background-color: var(--nav-button-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: var(--box-shadow);
+}
+
+.export-button:hover {
+    transform: translateY(-1px);
+}
+
+.export-button:active {
+    transform: translateY(0);
+}
+
+.stats {
+    background: var(--card-background);
+    padding: 10px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.stats #headacheCount {
+    font-size: 2em;
+    font-weight: bold;
+    color: var(--primary-color);
+    display: inline-block;
+    margin: 0 5px;
+}
+
+.current-month {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+#folderInput {
+    display: none;
+}
+
+.upload-button {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background-color 0.2s;
+}
+
+.upload-button:hover {
+    background-color: var(--nav-button-hover);
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 0;
+        margin: 0;
+    }
+
+    .container {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+    }
+
+    h1 {
+        margin: 0;
+        padding: 15px;
+    }
+
+    .navigation-controls {
+        margin: 0;
+        padding: 12px;
+        border-radius: 0;
+        background: var(--card-background);
+        box-shadow: var(--box-shadow);
+    }
+
+    .stats {
+        margin: 0;
+        padding: 12px;
+        border-radius: 0;
+        background: var(--card-background);
+        box-shadow: var(--box-shadow);
+    }
+
+    .upload-button {
+        display: block;
+        margin: 15px;
+    }
+
+    table {
+        margin: 15px 0;
+        border-radius: 0;
+    }
+
+    .nav-button {
+        padding: 8px;
+    }
+
+    .nav-button .button-text {
+        display: none;
+    }
+
+    .nav-button .arrow {
+        font-size: 1.4em;
+    }
+
+    .current-month {
+        font-size: 1.1em;
+    }
+
+    .export-container {
+        padding: 0 15px;
+    }
+
+    .export-button {
+        max-width: 100%;
+        margin: 1.5rem auto;
+        padding: 14px 20px;
+        font-size: 1.1rem;
+    }
+}
