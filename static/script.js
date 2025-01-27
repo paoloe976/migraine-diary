@@ -679,13 +679,21 @@ function createNotesInput(value) {
 // Funzione per salvare una riga
 function saveRow(row) {
     const date = row.getAttribute('data-date');
-    const intensity = row.querySelector('select[name="intensity"]')?.value || '';
-    const location = row.querySelector('select[name="location"]')?.value || '';
-    const medication = row.querySelector('input[name="medication"]')?.value || '';
-    const notes = row.querySelector('input.notes-input')?.value || '';
+    
+    // Cerca gli elementi nella riga
+    const intensitySelect = row.querySelector('select[name="intensity"]');
+    const locationSelect = row.querySelector('select[name="location"]');
+    const medicationInput = row.querySelector('input[name="medication"]');
+    const notesInput = row.querySelector('input.notes-input');
+
+    // Estrai i valori, usando stringa vuota se l'elemento non esiste
+    const intensity = intensitySelect ? intensitySelect.value : '';
+    const location = locationSelect ? locationSelect.value : '';
+    const medication = medicationInput ? medicationInput.value : '';
+    const notes = notesInput ? notesInput.value : '';
 
     // Aggiorna i dati
-    const monthKey = getCurrentMonth();
+    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
     const monthData = monthsData.get(monthKey) || [];
     const existingEntryIndex = monthData.findIndex(e => e.date === date);
 
@@ -712,7 +720,8 @@ function saveRow(row) {
 
 // Funzione per annullare la modifica di una riga
 function cancelEdit(row) {
-    const monthKey = getCurrentMonth();
+    const date = row.getAttribute('data-date');
+    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
     displayMonth(monthKey);
 }
 
@@ -833,9 +842,13 @@ function createDataTable(entries) {
 function makeRowEditable(row) {
     if (row.classList.contains('editing')) return;
     
+    // Se c'è già una riga in modifica, annulla quella modifica
+    finishCurrentEdit();
+    
     const date = row.getAttribute('data-date');
+    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
     const cells = Array.from(row.cells);
-    const data = monthsData.get(getCurrentMonth()) || [];
+    const data = monthsData.get(monthKey) || [];
     const entry = data.find(e => e.date === date) || { 
         date,
         intensity: '',
@@ -851,12 +864,12 @@ function makeRowEditable(row) {
     row.setAttribute('data-original', JSON.stringify(entry));
 
     // Crea gli input per ogni cella editabile
-    cells[2].innerHTML = createIntensityInput(entry.intensity || '');
-    cells[3].innerHTML = createLocationInput(entry.location || '');
-    cells[4].innerHTML = createMedicationInput(entry.medication || '');
+    cells[2].innerHTML = createIntensityInput(entry.intensity === undefined ? '' : entry.intensity);
+    cells[3].innerHTML = createLocationInput(entry.location === undefined ? '' : entry.location);
+    cells[4].innerHTML = createMedicationInput(entry.medication === undefined ? '' : entry.medication);
     cells[5].innerHTML = `
         <div class="edit-container">
-            <input type="text" class="edit-input notes-input" value="${entry.notes || ''}" style="width: 100%;">
+            <input type="text" class="edit-input notes-input" value="${entry.notes === undefined ? '' : entry.notes}" style="width: 100%;">
             <div class="edit-buttons">
                 <button class="save-btn" title="Salva">✓</button>
                 <button class="cancel-btn" title="Annulla">✗</button>
@@ -874,4 +887,15 @@ function makeRowEditable(row) {
     // Focus sul primo input
     const firstInput = row.querySelector('input, select');
     if (firstInput) firstInput.focus();
+}
+
+// Funzione per salvare o annullare la modifica della riga corrente
+function finishCurrentEdit() {
+    const currentEditingRow = document.querySelector('tr.editing');
+    if (currentEditingRow) {
+        // Annulla la modifica della riga corrente
+        cancelEdit(currentEditingRow);
+        return true;
+    }
+    return false;
 }
