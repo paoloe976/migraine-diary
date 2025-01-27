@@ -518,6 +518,39 @@ tbody tr.current-day:nth-child(even):hover td {
     display: none;
 }
 
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 0 1rem;
+}
+
+.control-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.control-button:hover {
+    background-color: var(--nav-button-hover);
+}
+
+.control-button i {
+    font-size: 1.1rem;
+}
+
+.file-input-container {
+    position: relative;
+}
+
 @media (max-width: 768px) {
     body {
         padding: 0;

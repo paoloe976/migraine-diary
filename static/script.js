@@ -348,16 +348,19 @@ function isStripedDay(year, month, day) {
 // Funzione per aggiornare i controlli di navigazione
 function updateNavigationControls() {
     const months = Array.from(monthsData.keys());
-    const currentMonthKey = currentMonth;
-    const [year, month] = currentMonthKey.split('-').map(num => parseInt(num));
+    const currentIndex = months.indexOf(currentMonth);
     
     const prevButton = document.getElementById('prevMonth');
     const nextButton = document.getElementById('nextMonth');
     const currentMonthSpan = document.getElementById('currentMonth');
 
-    prevButton.disabled = currentMonthKey <= months[0];
-    nextButton.disabled = currentMonthKey >= months[months.length - 1];
-    currentMonthSpan.textContent = formatMonthTitle(currentMonthKey);
+    prevButton.disabled = currentIndex <= 0;
+    nextButton.disabled = currentIndex >= months.length - 1;
+    currentMonthSpan.textContent = formatMonthTitle(currentMonth);
+    
+    // Mostra/nascondi i controlli di navigazione
+    const navigationControls = document.querySelector('.navigation-controls');
+    navigationControls.style.display = months.length > 0 ? 'flex' : 'none';
 }
 
 // Funzione per formattare il nome del mese
@@ -554,41 +557,99 @@ function exportCurrentMonth() {
     doc.save(fileName);
 }
 
-// Funzione per salvare tutti i dati
-async function saveAllData() {
-    try {
-        const data = Object.fromEntries(monthsData);
-        const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const formData = new FormData();
-        formData.append('file', blob, 'data.json');
-
-        const response = await fetch('/save', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error('Errore nel salvataggio dei dati');
+// Funzione per esportare tutti i dati in CSV
+function exportToCsv() {
+    // Header del CSV
+    const csvRows = ['Data,Intensità,Localizzazione,Farmaco,Note'];
+    
+    // Ordina i mesi
+    const sortedMonths = Array.from(monthsData.keys()).sort();
+    
+    // Per ogni mese
+    for (const monthKey of sortedMonths) {
+        const monthData = monthsData.get(monthKey);
+        if (!monthData) continue;
+        
+        // Ordina le entry per data
+        const sortedEntries = monthData.sort((a, b) => a.date.localeCompare(b.date));
+        
+        // Aggiungi ogni riga al CSV
+        for (const entry of sortedEntries) {
+            const row = [
+                entry.date,
+                entry.intensity || '',
+                entry.location || '',
+                entry.medication || '',
+                (entry.notes || '').replace(/,/g, ';') // Sostituisci le virgole con punto e virgola nelle note
+            ].map(field => `"${field}"`).join(',');
+            
+            csvRows.push(row);
         }
-    } catch (error) {
-        console.error('Errore nel salvataggio dei dati:', error);
+    }
+    
+    // Crea il blob e scarica il file
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const today = new Date();
+    const fileName = `diario_emicrania_${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}.csv`;
+    
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, fileName);
+    } else {
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
 
 // Funzione per caricare i dati all'avvio
 async function loadDataFromFile() {
     try {
-        const response = await fetch('data.json');
+        const response = await fetch('/get_data', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
         if (!response.ok) {
+            console.error('Errore nel caricamento dei dati:', response.status, response.statusText);
             monthsData = new Map();
             return;
         }
+        
         const data = await response.json();
+        console.log('Dati ricevuti:', data);
         monthsData = new Map(Object.entries(data));
+        console.log('Dati caricati nella Map:', monthsData);
     } catch (error) {
         console.error('Errore nel caricamento dei dati:', error);
         monthsData = new Map();
+    }
+}
+
+// Funzione per salvare tutti i dati
+async function saveAllData() {
+    try {
+        const data = Object.fromEntries(monthsData);
+        
+        const response = await fetch('/save_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Errore nel salvataggio dei dati: ${response.status} ${response.statusText}`);
+        }
+        console.log('Dati salvati con successo');
+    } catch (error) {
+        console.error('Errore nel salvataggio dei dati:', error);
     }
 }
 
@@ -599,11 +660,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Imposta e mostra il mese corrente
     const today = new Date();
     currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    displayMonth(currentMonth);
     
+    // Se non ci sono dati per il mese corrente, crealo
+    if (!monthsData.has(currentMonth)) {
+        monthsData.set(currentMonth, []);
+    }
+    
+    displayMonth(currentMonth);
     setupMonthNavigation();
     setupExportPdf();
     setupFileInput();
+    
+    // Aggiungi l'event listener per l'esportazione CSV
+    document.getElementById('exportCsv').addEventListener('click', exportToCsv);
 });
 
 // Aggiungi event listener per il pulsante di esportazione
@@ -614,6 +683,12 @@ function setupExportPdf() {
 // Gestione del caricamento della cartella
 function setupFileInput() {
     const fileInput = document.getElementById('fileInput');
+    const importButton = document.getElementById('importButton');
+    
+    importButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
     fileInput.addEventListener('change', async (event) => {
         const files = event.target.files;
         if (files) {
@@ -627,39 +702,6 @@ function setupFileInput() {
             // Reset il valore dell'input per permettere di selezionare gli stessi file
             event.target.value = '';
         }
-    });
-}
-
-function setupMonthNavigation() {
-    const prevButton = document.getElementById('prevMonth');
-    const nextButton = document.getElementById('nextMonth');
-
-    prevButton.addEventListener('click', () => {
-        const [year, month] = currentMonth.split('-');
-        let newMonth = parseInt(month) - 1;
-        let newYear = parseInt(year);
-
-        if (newMonth < 1) {
-            newMonth = 12;
-            newYear--;
-        }
-
-        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
-        displayMonth(currentMonth);
-    });
-
-    nextButton.addEventListener('click', () => {
-        const [year, month] = currentMonth.split('-');
-        let newMonth = parseInt(month) + 1;
-        let newYear = parseInt(year);
-
-        if (newMonth > 12) {
-            newMonth = 1;
-            newYear++;
-        }
-
-        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
-        displayMonth(currentMonth);
     });
 }
 
@@ -973,4 +1015,28 @@ function finishCurrentEdit() {
         return true;
     }
     return false;
+}
+
+// Funzione per impostare la navigazione tra i mesi
+function setupMonthNavigation() {
+    const prevButton = document.getElementById('prevMonth');
+    const nextButton = document.getElementById('nextMonth');
+    
+    prevButton.addEventListener('click', () => {
+        const months = Array.from(monthsData.keys());
+        const currentIndex = months.indexOf(currentMonth);
+        if (currentIndex > 0) {
+            currentMonth = months[currentIndex - 1];
+            displayMonth(currentMonth);
+        }
+    });
+    
+    nextButton.addEventListener('click', () => {
+        const months = Array.from(monthsData.keys());
+        const currentIndex = months.indexOf(currentMonth);
+        if (currentIndex < months.length - 1) {
+            currentMonth = months[currentIndex + 1];
+            displayMonth(currentMonth);
+        }
+    });
 }

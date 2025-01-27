@@ -67,10 +67,19 @@
             </tr>
         </template>
 
-        <div class="export-container">
-            <button class="export-button" id="exportPdf">Esporta PDF</button>
-            <label class="export-button" for="fileInput">Importa CSV</label>
-            <input type="file" id="fileInput" accept=".csv" multiple style="display: none;">
+        <div class="controls">
+            <button id="exportPdf" class="control-button">
+                <i class="fas fa-file-pdf"></i> Esporta PDF
+            </button>
+            <button id="exportCsv" class="control-button">
+                <i class="fas fa-file-csv"></i> Esporta CSV
+            </button>
+            <div class="file-input-container">
+                <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                <button id="importButton" class="control-button">
+                    <i class="fas fa-file-import"></i> Importa CSV
+                </button>
+            </div>
         </div>
 
         <script src="/static/script.js"></script>
