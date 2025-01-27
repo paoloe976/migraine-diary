@@ -14,24 +14,30 @@ function getMonthKey(date) {
 
 // Funzione per caricare e processare tutti i file
 async function loadAllFiles(files) {
-    const allData = new Map(); // Mappa temporanea per tutti i dati
+    const allData = new Map(monthsData); // Inizia con i dati esistenti
     
     // Leggi tutti i file
     const filePromises = Array.from(files)
         .filter(file => file.name.endsWith('.csv'))
         .map(file => new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = e => resolve(e.target.result);
+            reader.onload = e => resolve({ content: e.target.result, filename: file.name });
             reader.onerror = reject;
             reader.readAsText(file);
         }));
 
     try {
         const contents = await Promise.all(filePromises);
+        let newEntriesCount = 0;
+        let updatedEntriesCount = 0;
         
         // Processa tutti i contenuti
-        contents.forEach(content => {
+        contents.forEach(({content, filename}) => {
+            console.log(`Processando file: ${filename}`);
             const lines = content.split('\n');
+            const fileEntries = new Map(); // Mappa temporanea per le entry del file
+
+            // Prima raccogli tutte le entry valide dal file
             lines.forEach(line => {
                 if (line.trim()) {
                     const [date, intensity, location, medication, notes] = line.split(',');
@@ -39,11 +45,11 @@ async function loadAllFiles(files) {
                         const parsedDate = parseDate(date);
                         const monthKey = getMonthKey(parsedDate);
                         
-                        if (!allData.has(monthKey)) {
-                            allData.set(monthKey, []);
+                        if (!fileEntries.has(monthKey)) {
+                            fileEntries.set(monthKey, new Map());
                         }
                         
-                        allData.get(monthKey).push({
+                        fileEntries.get(monthKey).set(date, {
                             date,
                             intensity,
                             location,
@@ -53,10 +59,41 @@ async function loadAllFiles(files) {
                     }
                 }
             });
+
+            // Poi aggiorna solo le entry che sono nel file
+            for (const [monthKey, monthEntries] of fileEntries) {
+                if (!allData.has(monthKey)) {
+                    allData.set(monthKey, []);
+                }
+                
+                const existingEntries = allData.get(monthKey);
+                
+                // Per ogni entry nel file
+                for (const [date, newEntry] of monthEntries) {
+                    const existingIndex = existingEntries.findIndex(entry => entry.date === date);
+                    
+                    if (existingIndex === -1) {
+                        // Nuova entry
+                        existingEntries.push(newEntry);
+                        newEntriesCount++;
+                        console.log(`Aggiunta nuova entry per ${date}`);
+                    } else {
+                        // Aggiorna entry esistente
+                        console.log(`Aggiornamento entry per ${date}:`, newEntry);
+                        existingEntries[existingIndex] = newEntry;
+                        updatedEntriesCount++;
+                    }
+                }
+            }
         });
 
-        // Ordina i mesi
-        monthsData = new Map([...allData.entries()].sort());
+        // Ordina i mesi e le entries all'interno di ogni mese
+        monthsData = new Map([...allData.entries()].sort().map(([key, entries]) => {
+            return [key, entries.sort((a, b) => a.date.localeCompare(b.date))];
+        }));
+        
+        // Salva immediatamente i dati nel file JSON
+        await saveAllData();
         
         // Se ci sono dati, mostra il primo mese
         if (monthsData.size > 0) {
@@ -64,12 +101,15 @@ async function loadAllFiles(files) {
             const months = Array.from(monthsData.keys());
             displayMonth(months[currentMonthIndex]);
             document.querySelector('.navigation-controls').style.display = 'flex';
+            
+            if (newEntriesCount > 0 || updatedEntriesCount > 0) {
+                console.log(`Modifiche: ${newEntriesCount} nuove, ${updatedEntriesCount} aggiornate`);
+            }
         } else {
-            alert('Nessun dato valido trovato nei file. Assicurati che i file contengano date nel formato YYYY-MM-DD');
+            console.log('Nessun dato valido trovato nei file');
         }
     } catch (error) {
         console.error('Errore nel caricamento dei file:', error);
-        alert('Errore nel caricamento dei file CSV');
     }
 }
 
@@ -365,7 +405,7 @@ function exportCurrentMonth() {
         columnStyles: {
             0: { cellWidth: 20 },    
             1: { cellWidth: 25 },    
-            2: { cellWidth: 15 },    
+            2: { cellWidth: 20 },    
             3: { cellWidth: 40 },    
             4: { cellWidth: 60 }     
         },
@@ -392,27 +432,108 @@ function exportCurrentMonth() {
     doc.save(fileName);
 }
 
+// Funzione per salvare tutti i dati in un file JSON
+async function saveAllData() {
+    try {
+        // Converti la Map in un oggetto per la serializzazione
+        const data = {};
+        for (const [key, value] of monthsData) {
+            data[key] = value;
+        }
+
+        // Invia i dati al server
+        const response = await fetch('/api/data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Dati salvati con successo:', result.message);
+    } catch (error) {
+        console.error('Errore nel salvataggio dei dati:', error);
+    }
+}
+
+// Funzione per caricare i dati dal file JSON
+async function loadDataFromFile() {
+    try {
+        const response = await fetch('/api/data');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+
+        // Converti l'oggetto in Map
+        monthsData = new Map(Object.entries(data));
+
+        // Se ci sono dati, mostra il primo mese
+        if (monthsData.size > 0) {
+            currentMonthIndex = 0;
+            const months = Array.from(monthsData.keys());
+            displayMonth(months[currentMonthIndex]);
+            document.querySelector('.navigation-controls').style.display = 'flex';
+        }
+
+        console.log('Dati caricati con successo');
+    } catch (error) {
+        console.error('Errore nel caricamento dei dati:', error);
+    }
+}
+
+// Carica i dati all'avvio
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadDataFromFile();
+    setupMonthNavigation();
+    setupFileInput();
+    setupExportPdf();
+});
+
 // Aggiungi event listener per il pulsante di esportazione
-document.getElementById('exportPdf').addEventListener('click', exportCurrentMonth);
+function setupExportPdf() {
+    document.getElementById('exportPdf').addEventListener('click', exportCurrentMonth);
+}
 
 // Gestione del caricamento della cartella
-document.getElementById('folderInput').addEventListener('change', function(event) {
-    loadAllFiles(event.target.files);
-});
+function setupFileInput() {
+    const fileInput = document.getElementById('fileInput');
+    fileInput.addEventListener('change', async (event) => {
+        const files = event.target.files;
+        if (files) {
+            // Filtra solo i file CSV
+            const csvFiles = Array.from(files).filter(file => file.name.endsWith('.csv'));
+            if (csvFiles.length > 0) {
+                await loadAllFiles(csvFiles);
+            } else {
+                console.log('Nessun file CSV selezionato');
+            }
+            // Reset il valore dell'input per permettere di selezionare gli stessi file
+            event.target.value = '';
+        }
+    });
+}
 
-// Gestione della navigazione
-document.getElementById('prevMonth').addEventListener('click', function() {
-    const months = Array.from(monthsData.keys());
-    if (currentMonthIndex > 0) {
-        currentMonthIndex--;
-        displayMonth(months[currentMonthIndex]);
-    }
-});
+function setupMonthNavigation() {
+    document.getElementById('prevMonth').addEventListener('click', () => {
+        if (currentMonthIndex > 0) {
+            currentMonthIndex--;
+            const months = Array.from(monthsData.keys());
+            displayMonth(months[currentMonthIndex]);
+        }
+    });
 
-document.getElementById('nextMonth').addEventListener('click', function() {
-    const months = Array.from(monthsData.keys());
-    if (currentMonthIndex < months.length - 1) {
-        currentMonthIndex++;
-        displayMonth(months[currentMonthIndex]);
-    }
-});
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        const months = Array.from(monthsData.keys());
+        if (currentMonthIndex < months.length - 1) {
+            currentMonthIndex++;
+            displayMonth(months[currentMonthIndex]);
+        }
+    });
+}

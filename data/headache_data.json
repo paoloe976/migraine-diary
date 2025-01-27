@@ -1,0 +1,417 @@
+{
+  "2024-06": [
+    {
+      "date": "2024-06-03",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Stress da lavoro"
+    },
+    {
+      "date": "2024-06-15",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Dopo pranzo"
+    },
+    {
+      "date": "2024-06-28",
+      "intensity": "5",
+      "location": "D",
+      "medication": "Tachicaf",
+      "notes": "Insonnia"
+    }
+  ],
+  "2024-07": [
+    {
+      "date": "2024-07-02",
+      "intensity": "6",
+      "location": "D",
+      "medication": "Tachicaf",
+      "notes": "Forte dolore al risveglio"
+    },
+    {
+      "date": "2024-07-14",
+      "intensity": "2",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Leggero fastidio"
+    },
+    {
+      "date": "2024-07-20",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Durante viaggio"
+    },
+    {
+      "date": "2024-07-31",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Stress"
+    }
+  ],
+  "2024-08": [
+    {
+      "date": "2024-08-05",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Durante vacanza"
+    },
+    {
+      "date": "2024-08-16",
+      "intensity": "5",
+      "location": "D",
+      "medication": "Tachicaf",
+      "notes": "Caldo eccessivo"
+    },
+    {
+      "date": "2024-08-22",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Stanchezza"
+    },
+    {
+      "date": "2024-08-29",
+      "intensity": "2",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Leggero fastidio serale"
+    }
+  ],
+  "2024-09": [
+    {
+      "date": "2024-09-01",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Rientro dalle vacanze"
+    },
+    {
+      "date": "2024-09-12",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Dopo riunione"
+    },
+    {
+      "date": "2024-09-18",
+      "intensity": "5",
+      "location": "D",
+      "medication": "Tachicaf",
+      "notes": "Insonnia"
+    },
+    {
+      "date": "2024-09-25",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Stress lavorativo"
+    },
+    {
+      "date": "2024-09-30",
+      "intensity": "2",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Leggero fastidio"
+    }
+  ],
+  "2024-10": [
+    {
+      "date": "2024-10-03",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Cambio stagione"
+    },
+    {
+      "date": "2024-10-11",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Dopo viaggio in auto"
+    },
+    {
+      "date": "2024-10-19",
+      "intensity": "5",
+      "location": "D",
+      "medication": "Tachicaf",
+      "notes": "Forte dolore mattutino"
+    },
+    {
+      "date": "2024-10-24",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Durante riunione"
+    },
+    {
+      "date": "2024-10-31",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Stanchezza accumulata"
+    }
+  ],
+  "2024-11": [
+    {
+      "date": "2024-11-02",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Dopo notte insonne"
+    },
+    {
+      "date": "2024-11-08",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Stress da scadenze"
+    },
+    {
+      "date": "2024-11-15",
+      "intensity": "5",
+      "location": "D",
+      "medication": "Tachicaf",
+      "notes": "Forte dolore pomeridiano"
+    },
+    {
+      "date": "2024-11-22",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Oki",
+      "notes": "Durante viaggio"
+    },
+    {
+      "date": "2024-11-29",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Moment",
+      "notes": "Stanchezza fine settimana"
+    }
+  ],
+  "2024-12": [
+    {
+      "date": "2024-12-01",
+      "intensity": "3",
+      "location": "D",
+      "medication": "Ibuprofene 600mg",
+      "notes": "Cefalea dopo pranzo"
+    },
+    {
+      "date": "2024-12-03",
+      "intensity": "4",
+      "location": "U",
+      "medication": "Paracetamolo",
+      "notes": "Stress lavorativo"
+    },
+    {
+      "date": "2024-12-05",
+      "intensity": "2",
+      "location": "D",
+      "medication": "Nimesulide",
+      "notes": "Leggero fastidio mattutino"
+    },
+    {
+      "date": "2024-12-07",
+      "intensity": "5",
+      "location": "U",
+      "medication": "Sumatriptan",
+      "notes": "Forte dolore pulsante"
+    },
+    {
+      "date": "2024-12-09",
+      "intensity": "3",
+      "location": "D",
+      "medication": "Ibuprofene 400mg",
+      "notes": "Dopo attività fisica"
+    },
+    {
+      "date": "2024-12-11",
+      "intensity": "4",
+      "location": "U",
+      "medication": "Ketoprofene",
+      "notes": "Inizio in tarda serata"
+    },
+    {
+      "date": "2024-12-13",
+      "intensity": "6",
+      "location": "D",
+      "medication": "Sumatriptan + Metoclopramide",
+      "notes": "Nausea e fotofobia"
+    },
+    {
+      "date": "2024-12-15",
+      "intensity": "2",
+      "location": "U",
+      "medication": "Paracetamolo",
+      "notes": "Lieve fastidio"
+    },
+    {
+      "date": "2024-12-17",
+      "intensity": "5",
+      "location": "D",
+      "medication": "Sumatriptan",
+      "notes": "Risveglio con dolore"
+    },
+    {
+      "date": "2024-12-19",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Ibuprofene 600mg",
+      "notes": "Durante riunione"
+    },
+    {
+      "date": "2024-12-21",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Nimesulide",
+      "notes": "Peggioramento nel pomeriggio"
+    },
+    {
+      "date": "2024-12-23",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Ketoprofene",
+      "notes": "Post viaggio"
+    },
+    {
+      "date": "2024-12-25",
+      "intensity": "2",
+      "location": "D",
+      "medication": "Paracetamolo",
+      "notes": "Lieve tensione"
+    },
+    {
+      "date": "2024-12-27",
+      "intensity": "5",
+      "location": "U",
+      "medication": "Sumatriptan",
+      "notes": "Forte dolore unilaterale"
+    },
+    {
+      "date": "2024-12-29",
+      "intensity": "4",
+      "location": "D",
+      "medication": "Ibuprofene 600mg",
+      "notes": "Dopo esposizione al freddo"
+    },
+    {
+      "date": "2024-12-30",
+      "intensity": "3",
+      "location": "U",
+      "medication": "Nimesulide",
+      "notes": "Stress pre-festività"
+    },
+    {
+      "date": "2024-12-31",
+      "intensity": "6",
+      "location": "D",
+      "medication": "Sumatriptan + Metoclopramide",
+      "notes": "Forte dolore con nausea"
+    }
+  ],
+  "2025-01": [
+    {
+      "date": "2025-01-03",
+      "intensity": "4",
+      "location": "Frontale",
+      "medication": "Oki",
+      "notes": "Stress da lavoro"
+    },
+    {
+      "date": "2025-01-05",
+      "intensity": "3",
+      "location": "Diffusa",
+      "medication": "Nessuno",
+      "notes": ""
+    },
+    {
+      "date": "2025-01-07",
+      "intensity": "5",
+      "location": "Temporale",
+      "medication": "Moment",
+      "notes": "Insonnia"
+    },
+    {
+      "date": "2025-01-09",
+      "intensity": "2",
+      "location": "Frontale",
+      "medication": "Oki",
+      "notes": ""
+    },
+    {
+      "date": "2025-01-11",
+      "intensity": "4",
+      "location": "Diffusa",
+      "medication": "Moment",
+      "notes": "Stanchezza"
+    },
+    {
+      "date": "2025-01-13",
+      "intensity": "3",
+      "location": "Occipitale",
+      "medication": "Nessuno",
+      "notes": ""
+    },
+    {
+      "date": "2025-01-15",
+      "intensity": "5",
+      "location": "Frontale",
+      "medication": "Oki",
+      "notes": "Stress"
+    },
+    {
+      "date": "2025-01-17",
+      "intensity": "3",
+      "location": "Diffusa",
+      "medication": "Moment",
+      "notes": ""
+    },
+    {
+      "date": "2025-01-19",
+      "intensity": "4",
+      "location": "Temporale",
+      "medication": "Oki",
+      "notes": "Poco sonno"
+    },
+    {
+      "date": "2025-01-21",
+      "intensity": "2",
+      "location": "Frontale",
+      "medication": "Nessuno",
+      "notes": ""
+    },
+    {
+      "date": "2025-01-23",
+      "intensity": "5",
+      "location": "Diffusa",
+      "medication": "Moment",
+      "notes": "Ansia"
+    },
+    {
+      "date": "2025-01-25",
+      "intensity": "3",
+      "location": "Occipitale",
+      "medication": "Oki",
+      "notes": ""
+    },
+    {
+      "date": "2025-01-27",
+      "intensity": "4",
+      "location": "Frontale",
+      "medication": "Moment",
+      "notes": "Stanchezza"
+    },
+    {
+      "date": "2025-01-29",
+      "intensity": "5",
+      "location": "Diffusa",
+      "medication": "Nessuno",
+      "notes": "hello"
+    }
+  ]
+}

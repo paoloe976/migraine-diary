@@ -4,19 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diario Cefalee</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Diario Cefalee</h1>
+        <h1>Diario delle Cefalee</h1>
         
-        <label class="upload-button" for="folderInput">
-            Seleziona Cartella
-        </label>
-        <input type="file" id="folderInput" webkitdirectory directory multiple>
-
         <div class="navigation-controls" style="display: none;">
             <button class="nav-button" id="prevMonth">
                 <span class="arrow">&larr;</span>
@@ -53,9 +48,11 @@
 
         <div class="export-container">
             <button class="export-button" id="exportPdf">Esporta PDF</button>
+            <label class="export-button" for="fileInput">Importa CSV</label>
+            <input type="file" id="fileInput" accept=".csv" multiple style="display: none;">
         </div>
 
-        <script src="script.js"></script>
+        <script src="/static/script.js"></script>
     </div>
 </body>
 </html>

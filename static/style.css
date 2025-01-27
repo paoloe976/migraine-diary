@@ -193,29 +193,28 @@ tr.end-of-week + tr {
     cursor: not-allowed;
 }
 
+.export-container {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
 .export-button {
-    display: block;
-    width: 100%;
-    max-width: 300px;
-    margin: 2rem auto;
-    padding: 12px 24px;
-    background-color: var(--nav-button-color);
+    padding: 10px 20px;
+    background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: var(--box-shadow);
+    font-size: 16px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .export-button:hover {
-    transform: translateY(-1px);
-}
-
-.export-button:active {
-    transform: translateY(0);
+    background-color: #45a049;
 }
 
 .stats {
@@ -329,13 +328,12 @@ tr.end-of-week + tr {
     }
 
     .export-container {
-        padding: 0 15px;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .export-button {
         max-width: 100%;
-        margin: 1.5rem auto;
-        padding: 14px 20px;
-        font-size: 1.1rem;
+        margin: 0.5rem 0;
     }
 }
