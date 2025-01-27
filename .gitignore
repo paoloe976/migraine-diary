@@ -35,5 +35,6 @@ ENV/
 Thumbs.db
 
 # App specific
-diario/*.csv
+diario/
 instance/
+data/

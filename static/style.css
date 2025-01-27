@@ -97,20 +97,20 @@ tbody tr:nth-child(even):hover {
 }
 
 /* Stili per la separazione delle settimane */
-tr.end-of-week td {
-    border-bottom: 3px solid var(--week-border-color);
+.end-of-week {
+    border-bottom: 2px solid #ccc;
+}
+
+.start-of-week {
+    border-top: none;
 }
 
 tr.end-of-week + tr {
-    border-top: var(--week-separator-height) solid var(--background-color);
+    border-top: none;
 }
 
 tr:hover {
     background-color: #f5f5f5;
-}
-
-tr.editing {
-    background-color: #e8f4f8;
 }
 
 .edit-input {
@@ -340,8 +340,46 @@ input[list]::-webkit-calendar-picker-indicator {
 .intensity-2 { background: #8BC34A; }
 .intensity-3 { background: #FFC107; }
 .intensity-4 { background: #FF9800; }
-.intensity-5 { background: #FF5722; }
-.intensity-6 { background: #F44336; }
+.intensity-5 { background: #F44336; }
+
+/* Stili per la barra dell'intensità */
+.intensity-bar {
+    position: relative;
+    width: 60px;
+    height: 24px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.intensity-bar-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* Colori per le diverse intensità */
+.intensity-1 .intensity-bar-fill { background: #4CAF50; width: 20%; }
+.intensity-2 .intensity-bar-fill { background: #8BC34A; width: 40%; }
+.intensity-3 .intensity-bar-fill { background: #FFC107; width: 60%; }
+.intensity-4 .intensity-bar-fill { background: #FF9800; width: 80%; }
+.intensity-5 .intensity-bar-fill { background: #F44336; width: 100%; }
+
+.intensity-value {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: bold;
+    z-index: 1;
+    font-size: 14px;
+}
 
 /* Stili per i giorni della settimana */
 .saturday {
@@ -354,18 +392,7 @@ input[list]::-webkit-calendar-picker-indicator {
     font-weight: bold;
 }
 
-/* Mantieni i colori anche in modalità editing */
-tr.editing .saturday {
-    color: #1976d2;
-    font-weight: bold;
-}
-
-tr.editing .sunday {
-    color: #f44336;
-    font-weight: bold;
-}
-
-/* Stili per il giorno corrente */
+/* Stile per il giorno corrente */
 .current-day {
     font-weight: bold;
 }
@@ -374,8 +401,85 @@ tr.current-day {
     border-left: 3px solid #1976d2;
 }
 
-tr.editing.current-day {
-    border-left: 3px solid #1976d2;
+/* Stile per le righe cliccabili */
+.clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clickable-row:hover {
+    background-color: #f5f5f5;
+}
+
+.clickable-row:hover td {
+    background-color: #f5f5f5;
+}
+
+/* Stili per il contenitore di modifica */
+.edit-container {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.edit-input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.notes-input {
+    width: 100%;
+    min-height: 24px;
+    resize: vertical;
+}
+
+.edit-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.save-btn, .cancel-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.save-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
+.cancel-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #da190b;
+}
+
+/* Stili per la riga in modifica */
+.editing {
+    background-color: #e3f2fd !important;
+}
+
+.editing td {
+    background-color: #e3f2fd !important;
+}
+
+.editing .intensity-bar {
+    display: none;
 }
 
 @media (max-width: 768px) {
