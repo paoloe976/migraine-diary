@@ -554,63 +554,45 @@ function exportCurrentMonth() {
     doc.save(fileName);
 }
 
-// Funzione per salvare tutti i dati in un file JSON
+// Funzione per salvare tutti i dati
 async function saveAllData() {
     try {
-        // Converti la Map in un oggetto per il JSON
         const data = Object.fromEntries(monthsData);
-        
-        const response = await fetch('/data', {
+        const json = JSON.stringify(data, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const formData = new FormData();
+        formData.append('file', blob, 'data.json');
+
+        const response = await fetch('/save', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
+            body: formData
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        console.log('Dati salvati con successo:', result.message);
-        
-        // Aggiorna la visualizzazione dopo il salvataggio
-        if (monthsData.size > 0) {
-            const months = Array.from(monthsData.keys());
-            displayMonth(months[0]);
+            throw new Error('Errore nel salvataggio dei dati');
         }
     } catch (error) {
         console.error('Errore nel salvataggio dei dati:', error);
     }
 }
 
-// Carica i dati dal file JSON
+// Funzione per caricare i dati all'avvio
 async function loadDataFromFile() {
     try {
-        const response = await fetch('/data');
+        const response = await fetch('data.json');
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            monthsData = new Map();
+            return;
         }
         const data = await response.json();
-        
-        // Converti l'oggetto in Map
         monthsData = new Map(Object.entries(data));
-        
-        // Se ci sono dati, mostra il primo mese
-        if (monthsData.size > 0) {
-            const months = Array.from(monthsData.keys()).sort();
-            currentMonth = months[0];
-            displayMonth(currentMonth);
-            document.querySelector('.navigation-controls').style.display = 'flex';
-        }
     } catch (error) {
         console.error('Errore nel caricamento dei dati:', error);
         monthsData = new Map();
     }
 }
 
-// Carica i dati all'avvio
+// All'avvio, carica i dati e mostra il mese corrente
 document.addEventListener('DOMContentLoaded', async () => {
     await loadDataFromFile();
     
@@ -729,42 +711,47 @@ function createNotesInput(value) {
 // Funzione per salvare una riga
 function saveRow(row) {
     const date = row.getAttribute('data-date');
-    
-    // Cerca gli elementi nella riga
-    const intensitySelect = row.querySelector('select[name="intensity"]');
-    const locationSelect = row.querySelector('select[name="location"]');
-    const medicationInput = row.querySelector('input[name="medication"]');
-    const notesInput = row.querySelector('input.notes-input');
-
-    // Estrai i valori, usando stringa vuota se l'elemento non esiste
-    const intensity = intensitySelect ? intensitySelect.value : '';
-    const location = locationSelect ? locationSelect.value : '';
-    const medication = medicationInput ? medicationInput.value : '';
-    const notes = notesInput ? notesInput.value : '';
-
-    // Aggiorna i dati
     const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
     const monthData = monthsData.get(monthKey) || [];
     const existingEntryIndex = monthData.findIndex(e => e.date === date);
 
-    const entry = {
-        date,
-        intensity,
-        location,
-        medication,
-        notes
-    };
+    // Raccogli i valori dai campi di input
+    const intensity = row.querySelector('select[name="intensity"]').value;
+    const location = row.querySelector('select[name="location"]').value;
+    const medication = row.querySelector('input[name="medication"]').value;
+    const notes = row.querySelector('input.notes-input').value;
 
-    if (existingEntryIndex >= 0) {
-        monthData[existingEntryIndex] = entry;
-    } else {
-        monthData.push(entry);
+    // Se almeno un campo è compilato, salva la riga
+    if (intensity || location || medication || notes) {
+        const entry = {
+            date,
+            intensity,
+            location,
+            medication,
+            notes
+        };
+
+        if (existingEntryIndex >= 0) {
+            monthData[existingEntryIndex] = entry;
+        } else {
+            monthData.push(entry);
+        }
+
+        monthsData.set(monthKey, monthData);
+    } else if (existingEntryIndex >= 0) {
+        // Se tutti i campi sono vuoti e la riga esisteva, rimuovila
+        monthData.splice(existingEntryIndex, 1);
+        if (monthData.length === 0) {
+            monthsData.delete(monthKey);
+        } else {
+            monthsData.set(monthKey, monthData);
+        }
     }
 
-    monthsData.set(monthKey, monthData);
+    // Salva i dati
     saveAllData();
 
-    // Aggiorna la visualizzazione
+    // Aggiorna la visualizzazione mantenendo il mese corrente
     displayMonth(monthKey);
 }
 
