@@ -272,6 +272,20 @@ tr.end-of-week + tr {
         width: 100%;
     }
 
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0;
+        background: var(--card-background);
+    }
+
+    table {
+        margin: 0;
+        border-radius: 0;
+        min-width: 100%;
+        width: max-content;
+    }
+
     h1 {
         margin: 0;
         padding: 15px;
@@ -296,11 +310,6 @@ tr.end-of-week + tr {
     .upload-button {
         display: block;
         margin: 15px;
-    }
-
-    table {
-        margin: 15px 0;
-        border-radius: 0;
     }
 
     .nav-button {
