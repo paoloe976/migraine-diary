@@ -589,6 +589,42 @@
                 doc.setFillColor(currentFillColor);
             }
 
+            // Funzione per disegnare un chip circolare con il numero
+            function drawIntensityChip(intensity, x, y, cellWidth, cellHeight) {
+                if (intensity === '' || !intensityColors[intensity]) return;
+                
+                const color = intensityColors[intensity];
+                const radius = 2.75;
+                const centerX = x + cellWidth / 2;
+                const centerY = y + cellHeight / 2;
+                
+                // Salva lo stato corrente
+                const currentFillColor = doc.getFillColor();
+                const currentTextColor = doc.getTextColor();
+                const currentFontSize = doc.getFontSize();
+                
+                // Disegna il cerchio colorato
+                doc.setFillColor(color[0], color[1], color[2]);
+                doc.circle(centerX, centerY, radius, 'F');
+                
+                // Aggiungi il numero in bianco e grassetto
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                
+                // Disegna il numero
+                doc.text(intensity.toString(), centerX, centerY, { 
+                    align: 'center', 
+                    baseline: 'middle'
+                });
+                
+                // Ripristina lo stato
+                doc.setFillColor(currentFillColor);
+                doc.setTextColor(currentTextColor);
+                doc.setFontSize(currentFontSize);
+                doc.setFont('helvetica', 'normal');
+            }
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                 const formattedDate = day.toString().padStart(2, '0');
@@ -639,7 +675,7 @@
                 columnStyles: {
                     0: { cellWidth: 20 },    // Giorno
                     1: { 
-                        cellWidth: 5,       // Numero intensità
+                        cellWidth: 8,       // Numero intensità
                         cellPadding: { right: 0 }
                     },
                     2: { 
@@ -669,10 +705,21 @@
                     }
                 },
                 didDrawCell: function(data) {
-                    // Disegna la barra dell'intensità nella cella appropriata
+                    // Disegna il chip con il numero dell'intensità
+                    if (data.column.index === 1 && data.row.raw[1] && data.row.raw[1] !== '') {
+                        drawIntensityChip(
+                            data.row.raw[1],
+                            data.cell.x + 0.5, // Piccolo offset a destra
+                            data.cell.y,
+                            data.cell.width,
+                            data.cell.height
+                        );
+                    }
+                    
+                    // Disegna la barra dell'intensità
                     if (data.column.index === 2 && data.row.raw[2] && data.row.raw[2].intensity) {
                         const intensity = data.row.raw[2].intensity;
-                        const padding = 2;
+                        const padding = 1.5;  // Padding uniforme
                         drawIntensityBar(
                             intensity,
                             data.cell.x + padding,
