@@ -113,97 +113,176 @@ async function loadAllFiles(files) {
     }
 }
 
-// Funzione per visualizzare un mese specifico
+// Funzione per mostrare i dati del mese
 function displayMonth(monthKey) {
     const [year, month] = monthKey.split('-').map(num => parseInt(num));
-    const monthData = monthsData.get(monthKey) || [];
     const daysInMonth = new Date(year, month, 0).getDate();
+    const currentDate = getCurrentDate();
     
     // Crea un oggetto per mappare le date con i dati delle cefalee
-    const headacheData = {};
-    monthData.forEach(data => {
-        headacheData[data.date] = data;
+    const headacheData = new Map();
+    (monthsData.get(monthKey) || []).forEach(data => {
+        headacheData.set(data.date, data);
     });
 
-    const tbody = document.getElementById('headacheTable').getElementsByTagName('tbody')[0];
-    tbody.innerHTML = '';
-    let headacheCount = 0;
+    // Crea la tabella
+    const table = document.createElement('table');
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Giorno</th>
+                <th>Intensità</th>
+                <th>Sede</th>
+                <th>Farmaco</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            ${Array.from({length: daysInMonth}, (_, i) => {
+                const day = i + 1;
+                const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                const date = new Date(year, month - 1, day);
+                const dayOfWeek = date.getDay();
+                const weekday = date.toLocaleDateString('it-IT', { weekday: 'short' }).toUpperCase();
+                const entry = headacheData.get(dateStr);
+                
+                let weekdayClass = '';
+                if (dayOfWeek === 6) weekdayClass = 'saturday';
+                if (dayOfWeek === 0) weekdayClass = 'sunday';
+                
+                // Aggiungi la classe current-day se è il giorno corrente
+                const isCurrentDay = dateStr === currentDate;
+                const currentDayClass = isCurrentDay ? 'current-day' : '';
+                
+                return `
+                    <tr data-date="${dateStr}" class="${currentDayClass}">
+                        <td class="${currentDayClass}">${formatDate(dateStr)}</td>
+                        <td class="${weekdayClass}">${weekday}</td>
+                        <td>${entry ? entry.intensity : ''}</td>
+                        <td>${entry ? entry.location : ''}</td>
+                        <td>${entry ? entry.medication : ''}</td>
+                        <td>${entry ? entry.notes : ''}</td>
+                        <td></td>
+                    </tr>
+                `;
+            }).join('')}
+        </tbody>
+    `;
 
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-        const formattedDate = formatDate(year, month, day);
-        const weekday = getWeekday(year, month, day);
-        const isWeekendDay = isWeekend(year, month, day);
-        const endOfWeek = isEndOfWeek(year, month, day);
-        const startOfWeek = isStartOfWeek(year, month, day);
-        const isStriped = isStripedDay(year, month, day);
-        
-        if (dateStr in headacheData) {
-            const { intensity, location, medication, notes } = headacheData[dateStr];
-            const row = document.createElement('tr');
-            if (endOfWeek) {
-                row.classList.add('end-of-week');
+    // Aggiungi event listener per il click su tutte le righe
+    table.querySelectorAll('tbody tr').forEach(row => {
+        row.addEventListener('click', () => {
+            if (!row.classList.contains('editing')) {
+                makeRowEditable(row);
             }
-            if (startOfWeek) {
-                row.classList.add('start-of-week');
-            }
-            if (isStriped) {
-                row.classList.add('striped-row');
-            }
-            const intensityValue = parseInt(intensity);
-            
-            row.innerHTML = `
-                <td>${formattedDate}</td>
-                <td class="${isWeekendDay ? 'weekend-day' : 'weekday'}">${weekday}</td>
-                <td>
-                    <div class="intensity-indicator">
-                        <div class="intensity-bar intensity-${intensityValue}" 
-                             style="width: ${(intensityValue/6)*100}%">
-                        </div>
-                    </div>
-                    <small style="color: #666;">${intensityValue}/6</small>
-                </td>
-                <td><span class="location-badge location-${location.trim()}">${location.trim() === 'D' ? 'Diffusa' : 'Unilaterale'}</span></td>
-                <td>${medication}</td>
-                <td>${notes}</td>
-            `;
-            tbody.appendChild(row);
-            headacheCount++;
-        } else {
-            tbody.appendChild(createEmptyRow(formattedDate, weekday, isWeekendDay, endOfWeek, startOfWeek, isStriped));
-        }
-    }
+        });
+    });
 
-    document.getElementById('headacheCount').textContent = headacheCount;
-    updateNavigationControls();
+    // Aggiorna il contenuto e il conteggio
+    const container = document.getElementById('headacheData');
+    container.innerHTML = '';
+    container.appendChild(table);
+    
+    // Aggiorna il titolo del mese e il conteggio
+    document.getElementById('currentMonth').textContent = formatMonthTitle(monthKey);
+    document.getElementById('headacheCount').textContent = Array.from(headacheData.values()).length;
 }
 
-// Funzione per creare una riga vuota per una data
-function createEmptyRow(date, weekday, isWeekendDay, endOfWeek, startOfWeek, isStriped) {
-    const row = document.createElement('tr');
-    if (endOfWeek) {
-        row.classList.add('end-of-week');
+// Funzione per rendere una riga editabile
+function makeRowEditable(row) {
+    // Se c'è già una riga in editing, annulla prima quella
+    const currentEditing = document.querySelector('tr.editing');
+    if (currentEditing) {
+        cancelEdit(currentEditing);
     }
-    if (startOfWeek) {
-        row.classList.add('start-of-week');
+
+    const template = document.getElementById('editRowTemplate');
+    if (!template) {
+        console.error('Template non trovato');
+        return;
     }
-    if (isStriped) {
-        row.classList.add('striped-row');
-    }
-    row.innerHTML = `
-        <td>${date}</td>
-        <td class="${isWeekendDay ? 'weekend-day' : 'weekday'}">${weekday}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-    `;
-    return row;
+
+    const newRow = template.content.cloneNode(true);
+    const inputs = newRow.querySelectorAll('.edit-input');
+    const date = row.getAttribute('data-date');
+    
+    // Mantieni data e giorno della settimana non editabili
+    const cells = newRow.querySelectorAll('td');
+    cells[0].textContent = row.cells[0].textContent; // Data
+    cells[1].textContent = row.cells[1].textContent; // Giorno
+    
+    // Imposta i valori degli input e select
+    inputs.forEach(input => {
+        const cell = row.querySelector(`td:nth-child(${getColumnIndex(input.name)})`);
+        const value = cell ? cell.textContent.trim() : '';
+        
+        if (input.tagName === 'SELECT') {
+            // Se non c'è un valore valido, seleziona l'opzione vuota
+            if (!Array.from(input.options).some(opt => opt.value === value.toLowerCase())) {
+                input.value = '';
+            } else {
+                input.value = value.toLowerCase();
+            }
+        } else {
+            input.value = value;
+            
+            // Setup autocompletamento per il campo farmaco
+            if (input.name === 'medication') {
+                setupMedicationAutocomplete(input);
+            }
+        }
+    });
+
+    // Aggiungi event listener per i pulsanti
+    const saveBtn = newRow.querySelector('.save-btn');
+    const cancelBtn = newRow.querySelector('.cancel-btn');
+    const clearBtn = newRow.querySelector('.clear-btn');
+    
+    saveBtn.addEventListener('click', () => saveRow(row));
+    cancelBtn.addEventListener('click', () => cancelEdit(row));
+    clearBtn.addEventListener('click', () => {
+        inputs.forEach(input => {
+            if (input.tagName === 'SELECT') {
+                input.value = '';
+            } else {
+                input.value = '';
+            }
+        });
+    });
+
+    // Sostituisci la riga originale
+    const editRow = newRow.querySelector('tr');
+    editRow.dataset.date = date; // Mantieni l'attributo data-date
+    row.parentNode.replaceChild(editRow, row);
+}
+
+// Funzione per ottenere l'indice della colonna
+function getColumnIndex(name) {
+    const indices = {
+        'intensity': 3,
+        'location': 4,
+        'medication': 5,
+        'notes': 6
+    };
+    return indices[name] || 1;
 }
 
 // Funzione per formattare la data
-function formatDate(year, month, day) {
-    return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+function formatDate(dateStr) {
+    // Se la data è già nel formato YYYY-MM-DD, formattala in DD/MM/YYYY
+    if (typeof dateStr === 'string' && dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateStr.split('-');
+        return `${day}/${month}/${year}`;
+    }
+    
+    // Altrimenti è un oggetto Date
+    const date = new Date(dateStr);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
 }
 
 // Array dei giorni della settimana in italiano, partendo da Lunedì
@@ -215,13 +294,6 @@ function getWeekday(year, month, day) {
     const dayOfWeek = date.getDay();
     // Converti da domenica = 0 a lunedì = 0
     return weekdays[dayOfWeek === 0 ? 6 : dayOfWeek - 1];
-}
-
-// Funzione per verificare se è weekend
-function isWeekend(year, month, day) {
-    const date = new Date(year, month - 1, day);
-    const dayOfWeek = date.getDay();
-    return dayOfWeek === 0 || dayOfWeek === 6;
 }
 
 // Funzione per verificare se è l'ultimo giorno della settimana (Domenica)
@@ -266,6 +338,12 @@ function formatMonth(date) {
     return `${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
+// Funzione per formattare il titolo del mese
+function formatMonthTitle(monthKey) {
+    const [year, month] = monthKey.split('-').map(num => parseInt(num));
+    return formatMonth(new Date(year, month - 1));
+}
+
 // Inizializzazione di jsPDF
 const { jsPDF } = window.jspdf;
 
@@ -294,7 +372,7 @@ function exportCurrentMonth() {
     
     // Titolo
     doc.setFontSize(14);
-    doc.text(formatMonth(new Date(year, month - 1)), 10, 15);
+    doc.text(formatMonthTitle(currentMonthKey), 10, 15);
     
     // Sottotitolo con conteggio
     doc.setFontSize(8);
@@ -435,14 +513,13 @@ function exportCurrentMonth() {
 // Funzione per salvare tutti i dati in un file JSON
 async function saveAllData() {
     try {
-        // Converti la Map in un oggetto per la serializzazione
+        // Converti la Map in un oggetto per il JSON
         const data = {};
         for (const [key, value] of monthsData) {
             data[key] = value;
         }
-
-        // Invia i dati al server
-        const response = await fetch('/api/data', {
+        
+        const response = await fetch('/data', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -453,7 +530,7 @@ async function saveAllData() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const result = await response.json();
         console.log('Dati salvati con successo:', result.message);
     } catch (error) {
@@ -461,30 +538,34 @@ async function saveAllData() {
     }
 }
 
-// Funzione per caricare i dati dal file JSON
+// Carica i dati dal file JSON
 async function loadDataFromFile() {
     try {
-        const response = await fetch('/api/data');
+        const response = await fetch('/data');
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
         const data = await response.json();
-
-        // Converti l'oggetto in Map
-        monthsData = new Map(Object.entries(data));
-
-        // Se ci sono dati, mostra il primo mese
-        if (monthsData.size > 0) {
-            currentMonthIndex = 0;
-            const months = Array.from(monthsData.keys());
-            displayMonth(months[currentMonthIndex]);
-            document.querySelector('.navigation-controls').style.display = 'flex';
+        
+        // Converte i dati in una Map
+        monthsData = new Map();
+        for (const [key, entries] of Object.entries(data)) {
+            monthsData.set(key, entries);
         }
-
-        console.log('Dati caricati con successo');
+        
+        // Mostra il mese corrente all'apertura
+        const currentMonth = getCurrentMonth();
+        if (!monthsData.has(currentMonth)) {
+            monthsData.set(currentMonth, []);
+        }
+        
+        displayMonth(currentMonth);
+        document.querySelector('.navigation-controls').style.display = 'flex';
+        
     } catch (error) {
         console.error('Errore nel caricamento dei dati:', error);
+        // Inizializza una Map vuota in caso di errore
+        monthsData = new Map();
     }
 }
 
@@ -536,4 +617,110 @@ function setupMonthNavigation() {
             displayMonth(months[currentMonthIndex]);
         }
     });
+}
+
+// Funzione per salvare una riga
+async function saveRow(originalRow) {
+    const editRow = document.querySelector('tr.editing');
+    if (!editRow) return;
+
+    const inputs = editRow.querySelectorAll('.edit-input');
+    const date = editRow.getAttribute('data-date');
+    
+    // Raccogli i valori, capitalizzando la prima lettera per i select
+    const newData = {
+        date: date,
+        intensity: inputs[0].value,
+        location: inputs[1].value ? inputs[1].value.charAt(0).toUpperCase() + inputs[1].value.slice(1) : '',
+        medication: inputs[2].value.trim(),
+        notes: inputs[3].value.trim()
+    };
+
+    // Se tutti i campi sono vuoti, rimuovi l'entry
+    const isEmpty = Object.entries(newData)
+        .filter(([key]) => key !== 'date')
+        .every(([_, value]) => value === '');
+
+    // Aggiorna i dati in memoria
+    const monthKey = getMonthKey(parseDate(date));
+    let monthData = monthsData.get(monthKey) || [];
+    const entryIndex = monthData.findIndex(e => e.date === date);
+    
+    if (isEmpty) {
+        // Se la riga è vuota e esisteva, rimuovila
+        if (entryIndex !== -1) {
+            monthData.splice(entryIndex, 1);
+        }
+    } else {
+        // Altrimenti aggiorna o aggiungi
+        if (entryIndex !== -1) {
+            monthData[entryIndex] = newData;
+        } else {
+            monthData.push(newData);
+        }
+    }
+    
+    monthsData.set(monthKey, monthData);
+
+    // Salva nel database
+    await saveAllData();
+
+    // Aggiorna la visualizzazione
+    displayMonth(monthKey);
+}
+
+// Funzione per annullare l'editing
+function cancelEdit(row) {
+    const monthKey = getMonthKey(parseDate(row.getAttribute('data-date')));
+    displayMonth(monthKey);
+}
+
+// Funzione per ottenere il mese corrente nel formato YYYY-MM
+function getCurrentMonth() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    return `${year}-${month}`;
+}
+
+// Funzione per ottenere la data corrente nel formato YYYY-MM-DD
+function getCurrentDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Funzione per ottenere la lista unica dei farmaci usati
+function getUsedMedications() {
+    const medications = new Set();
+    for (const entries of monthsData.values()) {
+        entries.forEach(entry => {
+            if (entry.medication) {
+                medications.add(entry.medication.trim());
+            }
+        });
+    }
+    return Array.from(medications).sort();
+}
+
+// Funzione per creare e gestire il datalist dei farmaci
+function setupMedicationAutocomplete(input) {
+    // Crea un nuovo datalist se non esiste
+    let datalist = document.getElementById('medications-list');
+    if (!datalist) {
+        datalist = document.createElement('datalist');
+        datalist.id = 'medications-list';
+        document.body.appendChild(datalist);
+    }
+
+    // Aggiorna le opzioni con i farmaci usati
+    const medications = getUsedMedications();
+    datalist.innerHTML = medications
+        .map(med => `<option value="${med}">`)
+        .join('');
+
+    // Collega il datalist all'input
+    input.setAttribute('list', 'medications-list');
 }

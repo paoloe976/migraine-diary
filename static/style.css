@@ -9,7 +9,6 @@
     --intensity-6: #1565c0;
     --striped-color: #e8f1ff;
     --striped-hover-color: #dae7fb;
-    --weekend-text-color: #2563eb;
     --border-color: #e5e7eb;
     --week-border-color: #64748b;
     --week-separator-height: 25px;
@@ -63,8 +62,8 @@ h1 {
 
 table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
+    border-collapse: collapse;
+    margin: 20px 0;
     background-color: var(--card-background);
     border-radius: var(--border-radius);
     overflow: hidden;
@@ -72,9 +71,9 @@ table {
 }
 
 th, td {
-    padding: 12px;
+    padding: 8px;
     text-align: left;
-    border: 1px solid var(--border-color);
+    border-bottom: 1px solid #ddd;
 }
 
 th:last-child, td:last-child {
@@ -82,9 +81,10 @@ th:last-child, td:last-child {
 }
 
 th {
-    background-color: var(--primary-color);
+    background-color: #1976d2;
     color: white;
-    font-weight: 600;
+    font-weight: bold;
+    padding: 12px 8px;
 }
 
 /* Righe alternate */
@@ -105,37 +105,101 @@ tr.end-of-week + tr {
     border-top: var(--week-separator-height) solid var(--background-color);
 }
 
-/* Stili per il weekend */
-.weekend-day {
-    color: var(--weekend-text-color) !important;
-    font-weight: 500;
+tr:hover {
+    background-color: #f5f5f5;
 }
 
-.weekday {
-    font-weight: 500;
-    color: #666;
+tr.editing {
+    background-color: #e8f4f8;
 }
 
-/* Stili per l'indicatore di intensità */
-.intensity-indicator {
-    width: 100%;
-    height: 8px;
-    background: #eee;
+.edit-input {
+    width: 90%;
+    padding: 5px;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    overflow: hidden;
+    font-size: inherit;
+    font-family: inherit;
 }
 
-.intensity-bar {
-    height: 100%;
-    transition: width 0.3s ease;
+select.edit-input {
+    background-color: white;
+    cursor: pointer;
+    appearance: none;
+    padding-right: 25px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 5px center;
+    background-size: 16px;
 }
 
-.intensity-1 { background: #4CAF50; }
-.intensity-2 { background: #8BC34A; }
-.intensity-3 { background: #FFC107; }
-.intensity-4 { background: #FF9800; }
-.intensity-5 { background: #FF5722; }
-.intensity-6 { background: #F44336; }
+select.edit-input:hover {
+    border-color: #1976d2;
+}
+
+select.edit-input:focus {
+    border-color: #1976d2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
+
+select.edit-input option {
+    padding: 8px;
+}
+
+/* Stili per input con datalist */
+input[list] {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 5px center;
+    background-size: 16px;
+    padding-right: 25px;
+}
+
+input[list]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.save-btn, .cancel-btn, .clear-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.save-btn {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.clear-btn {
+    background-color: #ff9800;
+    color: white;
+}
+
+.cancel-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+.save-btn:hover {
+    background-color: #45a049;
+}
+
+.clear-btn:hover {
+    background-color: #f57c00;
+}
+
+.cancel-btn:hover {
+    background-color: #da190b;
+}
 
 .location-badge {
     display: inline-block;
@@ -259,6 +323,61 @@ tr.end-of-week + tr {
     background-color: var(--nav-button-hover);
 }
 
+.intensity-indicator {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.intensity-bar {
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.intensity-1 { background: #4CAF50; }
+.intensity-2 { background: #8BC34A; }
+.intensity-3 { background: #FFC107; }
+.intensity-4 { background: #FF9800; }
+.intensity-5 { background: #FF5722; }
+.intensity-6 { background: #F44336; }
+
+/* Stili per i giorni della settimana */
+.saturday {
+    color: #1976d2;
+    font-weight: bold;
+}
+
+.sunday {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* Mantieni i colori anche in modalità editing */
+tr.editing .saturday {
+    color: #1976d2;
+    font-weight: bold;
+}
+
+tr.editing .sunday {
+    color: #f44336;
+    font-weight: bold;
+}
+
+/* Stili per il giorno corrente */
+.current-day {
+    font-weight: bold;
+}
+
+tr.current-day {
+    border-left: 3px solid #1976d2;
+}
+
+tr.editing.current-day {
+    border-left: 3px solid #1976d2;
+}
+
 @media (max-width: 768px) {
     body {
         padding: 0;
@@ -315,25 +434,25 @@ tr.end-of-week + tr {
         padding: 8px;
     }
 
-    .nav-button .button-text {
+    .nav-button .text {
         display: none;
     }
 
     .nav-button .arrow {
-        font-size: 1.4em;
+        font-size: 24px;
     }
 
-    .current-month {
-        font-size: 1.1em;
+    th, td {
+        padding: 8px 4px;
+        font-size: 14px;
     }
 
-    .export-container {
-        flex-direction: column;
-        align-items: stretch;
+    .edit-input {
+        width: 100%;
+        min-width: 60px;
     }
+}
 
-    .export-button {
-        max-width: 100%;
-        margin: 0.5rem 0;
-    }
+tr {
+    cursor: pointer;
 }

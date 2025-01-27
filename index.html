@@ -15,36 +15,57 @@
         <div class="navigation-controls" style="display: none;">
             <button class="nav-button" id="prevMonth">
                 <span class="arrow">&larr;</span>
-                <span class="button-text">Mese Precedente</span>
+                <span class="text">Mese Precedente</span>
             </button>
-            <span class="current-month" id="currentMonth"></span>
+            <span id="currentMonth"></span>
             <button class="nav-button" id="nextMonth">
-                <span class="button-text">Mese Successivo</span>
+                <span class="text">Mese Successivo</span>
                 <span class="arrow">&rarr;</span>
             </button>
         </div>
 
-        <div class="stats">
-            Totale cefalee nel mese: <span id="headacheCount">0</span>
+        <div id="headacheData">
+            <!-- I dati delle cefalee verranno inseriti qui -->
         </div>
 
-        <div class="table-wrapper">
-            <table id="headacheTable">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Giorno</th>
-                        <th>Intensità</th>
-                        <th>Sede</th>
-                        <th>Farmaco Utilizzato</th>
-                        <th>Note</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- I dati delle cefalee verranno inseriti qui -->
-                </tbody>
-            </table>
+        <div class="stats">
+            <p>Episodi questo mese: <span id="headacheCount">0</span></p>
         </div>
+
+        <template id="editRowTemplate">
+            <tr class="editing">
+                <td></td>
+                <td></td>
+                <td>
+                    <select class="edit-input" name="intensity">
+                        <option value="">-</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="edit-input" name="location">
+                        <option value="">-</option>
+                        <option value="occipitale">Occipitale</option>
+                        <option value="temporale">Temporale</option>
+                        <option value="frontale">Frontale</option>
+                        <option value="laterale">Laterale</option>
+                        <option value="diffuso">Diffuso</option>
+                    </select>
+                </td>
+                <td><input type="text" class="edit-input" name="medication"></td>
+                <td><input type="text" class="edit-input" name="notes"></td>
+                <td class="action-buttons">
+                    <button class="save-btn" title="Salva">✓</button>
+                    <button class="clear-btn" title="Svuota">⌫</button>
+                    <button class="cancel-btn" title="Annulla">✗</button>
+                </td>
+            </tr>
+        </template>
 
         <div class="export-container">
             <button class="export-button" id="exportPdf">Esporta PDF</button>

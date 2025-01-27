@@ -121,13 +121,6 @@
   ],
   "2024-10": [
     {
-      "date": "2024-10-03",
-      "intensity": "3",
-      "location": "U",
-      "medication": "Moment",
-      "notes": "Cambio stagione"
-    },
-    {
       "date": "2024-10-11",
       "intensity": "4",
       "location": "D",
@@ -154,6 +147,13 @@
       "location": "D",
       "medication": "Oki",
       "notes": "Stanchezza accumulata"
+    },
+    {
+      "date": "2024-10-03",
+      "intensity": "1",
+      "location": "Frontale",
+      "medication": "",
+      "notes": ""
     }
   ],
   "2024-11": [
@@ -227,7 +227,7 @@
       "intensity": "3",
       "location": "D",
       "medication": "Ibuprofene 400mg",
-      "notes": "Dopo attività fisica"
+      "notes": "Dopo attivit\u00e0 fisica"
     },
     {
       "date": "2024-12-11",
@@ -304,7 +304,7 @@
       "intensity": "3",
       "location": "U",
       "medication": "Nimesulide",
-      "notes": "Stress pre-festività"
+      "notes": "Stress pre-festivit\u00e0"
     },
     {
       "date": "2024-12-31",
@@ -412,6 +412,13 @@
       "location": "Diffusa",
       "medication": "Nessuno",
       "notes": "hello"
+    },
+    {
+      "date": "2025-01-02",
+      "intensity": "3",
+      "location": "Temporale",
+      "medication": "Paracetamolo",
+      "notes": ""
     }
   ]
 }
