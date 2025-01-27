@@ -11,13 +11,18 @@
             --card-background: #ffffff;
             --text-color: #333333;
             --border-radius: 8px;
-            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --intensity-1: #e3f2fd;
+            --intensity-6: #1565c0;
             --striped-color: #e8f1ff;
             --striped-hover-color: #dae7fb;
             --weekend-text-color: #2563eb;
             --border-color: #e5e7eb;
             --week-border-color: #64748b;
             --week-separator-height: 25px;
+            --nav-button-color: #4a90e2;
+            --nav-button-hover: #357abd;
+            --nav-button-disabled: #cccccc;
         }
 
         body {
@@ -42,38 +47,11 @@
             font-size: 2.5em;
         }
 
-        .file-upload {
-            background: var(--card-background);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .file-upload input {
-            display: none;
-        }
-
-        .file-upload label {
-            background: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: inline-block;
-            transition: background 0.3s ease;
-        }
-
-        .file-upload label:hover {
-            background: #357abd;
-        }
-
         .stats-card {
             background: var(--card-background);
             padding: 20px;
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            box-shadow: var(--box-shadow);
             margin-bottom: 20px;
             text-align: center;
         }
@@ -97,7 +75,7 @@
             background-color: var(--card-background);
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: var(--shadow);
+            box-shadow: var(--box-shadow);
         }
 
         th, td {
@@ -183,22 +161,80 @@
             background: #fce4ec;
             color: #c2185b;
         }
+
+        .navigation-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .nav-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--border-radius);
+            background-color: var(--nav-button-color);
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover:not(:disabled) {
+            background-color: var(--nav-button-hover);
+        }
+
+        .nav-button:disabled {
+            background-color: var(--nav-button-disabled);
+            cursor: not-allowed;
+        }
+
+        .current-month {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        #folderInput {
+            display: none;
+        }
+
+        .upload-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-button:hover {
+            background-color: var(--nav-button-hover);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Diario delle Cefalee</h1>
+        <h1>Diario Cefalee</h1>
         
-        <div class="file-upload">
-            <label for="fileInput">
-                📁 Carica file CSV
-                <input type="file" id="fileInput" accept="text/csv">
-            </label>
+        <label class="upload-button" for="folderInput">
+            Seleziona Cartella
+        </label>
+        <input type="file" id="folderInput" webkitdirectory directory multiple>
+
+        <div class="navigation-controls" style="display: none;">
+            <button class="nav-button" id="prevMonth" disabled>&larr; Mese Precedente</button>
+            <span class="current-month" id="currentMonth"></span>
+            <button class="nav-button" id="nextMonth" disabled>Mese Successivo &rarr;</button>
         </div>
 
-        <div class="stats-card">
-            <div class="stat-value" id="headacheCount">0</div>
-            <div class="stat-label">Cefalee nel Mese</div>
+        <div class="stats">
+            Totale cefalee nel mese: <span id="headacheCount">0</span>
         </div>
 
         <table id="headacheTable">
@@ -219,6 +255,213 @@
     </div>
 
     <script>
+        let currentFileIndex = 0;
+        let csvFiles = [];
+
+        // Funzione per ordinare i file per data
+        function sortFilesByDate(files) {
+            return Array.from(files).filter(file => file.name.endsWith('.csv'))
+                .sort((a, b) => {
+                    const dateA = parseFileDate(a.name);
+                    const dateB = parseFileDate(b.name);
+                    if (!dateA || !dateB) return 0;
+                    return dateA - dateB;
+                });
+        }
+
+        // Funzione per estrarre la data dal nome del file
+        function parseFileDate(filename) {
+            const monthNames = {
+                'gennaio': 0, 'febbraio': 1, 'marzo': 2, 'aprile': 3,
+                'maggio': 4, 'giugno': 5, 'luglio': 6, 'agosto': 7,
+                'settembre': 8, 'ottobre': 9, 'novembre': 10, 'dicembre': 11
+            };
+
+            // Rimuovi l'estensione .csv e eventuali spazi
+            const name = filename.toLowerCase().replace('.csv', '').trim();
+            
+            // Cerca il pattern mese_anno o mese-anno
+            for (const [monthName, monthIndex] of Object.entries(monthNames)) {
+                if (name.includes(monthName)) {
+                    // Trova l'anno nel nome del file
+                    const yearMatch = name.match(/\d{4}/);
+                    if (yearMatch) {
+                        const year = parseInt(yearMatch[0]);
+                        return new Date(year, monthIndex);
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Funzione per formattare il nome del mese
+        function formatMonth(date) {
+            const months = [
+                'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+            ];
+            return `${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
+
+        // Funzione per aggiornare i controlli di navigazione
+        function updateNavigationControls() {
+            const prevButton = document.getElementById('prevMonth');
+            const nextButton = document.getElementById('nextMonth');
+            const currentMonthSpan = document.getElementById('currentMonth');
+
+            prevButton.disabled = currentFileIndex <= 0;
+            nextButton.disabled = currentFileIndex >= csvFiles.length - 1;
+
+            if (csvFiles.length > 0) {
+                const currentFile = csvFiles[currentFileIndex];
+                const currentDate = parseFileDate(currentFile.name);
+                currentMonthSpan.textContent = formatMonth(currentDate);
+                document.querySelector('.navigation-controls').style.display = 'flex';
+            }
+        }
+
+        // Gestione del caricamento della cartella
+        document.getElementById('folderInput').addEventListener('change', function(event) {
+            const files = event.target.files;
+            csvFiles = sortFilesByDate(files).filter(file => parseFileDate(file.name) !== null);
+            
+            if (csvFiles.length > 0) {
+                currentFileIndex = 0;
+                loadCurrentFile();
+            } else {
+                alert('Nessun file CSV valido trovato nella cartella. I file devono essere nominati come "mese_2024.csv" (es. "giugno_2024.csv")');
+            }
+        });
+
+        // Gestione della navigazione
+        document.getElementById('prevMonth').addEventListener('click', function() {
+            if (currentFileIndex > 0) {
+                currentFileIndex--;
+                loadCurrentFile();
+            }
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', function() {
+            if (currentFileIndex < csvFiles.length - 1) {
+                currentFileIndex++;
+                loadCurrentFile();
+            }
+        });
+
+        // Funzione per caricare il file corrente
+        function loadCurrentFile() {
+            const file = csvFiles[currentFileIndex];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                processFileContent(e.target.result);
+            };
+            
+            reader.readAsText(file);
+            updateNavigationControls();
+        }
+
+        // Funzione per processare il contenuto del file
+        function processFileContent(content) {
+            const lines = content.split('\n');
+            let headacheCount = 0;
+            const tbody = document.getElementById('headacheTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = ''; // Clear existing data
+
+            // Creare un oggetto per mappare le date con i dati delle cefalee
+            const headacheData = {};
+            lines.forEach(line => {
+                if (line.trim()) {
+                    const [date, intensity, location, medication, notes] = line.split(',');
+                    headacheData[date] = { intensity, location, medication, notes };
+                }
+            });
+
+            // Estrarre anno e mese dal file corrente
+            const currentFile = csvFiles[currentFileIndex];
+            const currentDate = parseFileDate(currentFile.name);
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                const formattedDate = formatDate(year, month, day);
+                const weekday = getWeekday(year, month, day);
+                const isWeekendDay = isWeekend(year, month, day);
+                const endOfWeek = isEndOfWeek(year, month, day);
+                const startOfWeek = isStartOfWeek(year, month, day);
+                const isStriped = isStripedDay(year, month, day);
+                
+                if (dateStr in headacheData) {
+                    // Giorno con cefalea
+                    const { intensity, location, medication, notes } = headacheData[dateStr];
+                    const row = document.createElement('tr');
+                    if (endOfWeek) {
+                        row.classList.add('end-of-week');
+                    }
+                    if (startOfWeek) {
+                        row.classList.add('start-of-week');
+                    }
+                    if (isStriped) {
+                        row.classList.add('striped-row');
+                    }
+                    const intensityValue = parseInt(intensity);
+                    
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td class="${isWeekendDay ? 'weekend-day' : 'weekday'}">${weekday}</td>
+                        <td>
+                            <div class="intensity-indicator">
+                                <div class="intensity-bar intensity-${intensityValue}" 
+                                     style="width: ${(intensityValue/6)*100}%">
+                                </div>
+                            </div>
+                            <small style="color: #666;">${intensityValue}/6</small>
+                        </td>
+                        <td><span class="location-badge location-${location.trim()}">${location.trim() === 'D' ? 'Diffusa' : 'Unilaterale'}</span></td>
+                        <td>${medication}</td>
+                        <td>${notes}</td>
+                    `;
+                    tbody.appendChild(row);
+                    headacheCount++;
+                } else {
+                    // Giorno senza cefalea
+                    tbody.appendChild(createEmptyRow(formattedDate, weekday, isWeekendDay, endOfWeek, startOfWeek, isStriped));
+                }
+            }
+
+            document.getElementById('headacheCount').textContent = headacheCount;
+        }
+
+        // Funzione per creare una riga vuota per una data
+        function createEmptyRow(date, weekday, isWeekendDay, endOfWeek, startOfWeek, isStriped) {
+            const row = document.createElement('tr');
+            if (endOfWeek) {
+                row.classList.add('end-of-week');
+            }
+            if (startOfWeek) {
+                row.classList.add('start-of-week');
+            }
+            if (isStriped) {
+                row.classList.add('striped-row');
+            }
+            row.innerHTML = `
+                <td>${date}</td>
+                <td class="${isWeekendDay ? 'weekend-day' : 'weekday'}">${weekday}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            `;
+            return row;
+        }
+
+        // Funzione per formattare la data
+        function formatDate(year, month, day) {
+            return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
+        }
+
         // Array dei giorni della settimana in italiano, partendo da Lunedì
         const weekdays = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'];
 
@@ -249,145 +492,11 @@
             return date.getDay() === 1;
         }
 
-        // Funzione per creare una riga vuota per una data
-        function createEmptyRow(date, weekday, isWeekendDay, endOfWeek, startOfWeek) {
-            const row = document.createElement('tr');
-            if (endOfWeek) {
-                row.classList.add('end-of-week');
-            }
-            if (startOfWeek) {
-                row.classList.add('start-of-week');
-            }
-            row.innerHTML = `
-                <td>${date}</td>
-                <td class="${isWeekendDay ? 'weekend-day' : 'weekday'}">${weekday}</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            `;
-            return row;
+        // Funzione per verificare se è un giorno alternato
+        function isStripedDay(year, month, day) {
+            const date = new Date(year, month - 1, day);
+            return date.getDate() % 2 === 0;
         }
-
-        // Funzione per formattare la data
-        function formatDate(year, month, day) {
-            return `${day.toString().padStart(2, '0')}/${month.toString().padStart(2, '0')}/${year}`;
-        }
-
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const contents = e.target.result;
-                    const lines = contents.split('\n');
-                    let headacheCount = 0;
-                    const tbody = document.getElementById('headacheTable').getElementsByTagName('tbody')[0];
-                    tbody.innerHTML = ''; // Clear existing data
-
-                    // Creare un oggetto per mappare le date con i dati delle cefalee
-                    const headacheData = {};
-                    lines.forEach(line => {
-                        if (line.trim()) {
-                            const [date, intensity, location, medication, notes] = line.split(',');
-                            headacheData[date] = { intensity, location, medication, notes };
-                        }
-                    });
-
-                    // Generare tutte le date del mese
-                    const year = 2024;
-                    const month = 12;
-                    const daysInMonth = new Date(year, month, 0).getDate();
-
-                    // Prepara array con tutti i giorni del mese
-                    const monthData = [];
-                    for (let day = 1; day <= daysInMonth; day++) {
-                        const date = new Date(year, month - 1, day);
-                        const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                        const formattedDate = formatDate(year, month, day);
-                        const dayOfWeek = date.getDay(); // 0 = domenica, 6 = sabato
-                        
-                        monthData.push({
-                            date: formattedDate,
-                            dayOfWeek: dayOfWeek,
-                            weekday: weekdays[dayOfWeek === 0 ? 6 : dayOfWeek - 1],
-                            isWeekend: dayOfWeek === 0 || dayOfWeek === 6,
-                            isEndOfWeek: dayOfWeek === 0,
-                            isStartOfWeek: dayOfWeek === 1,
-                            headacheData: headacheData[dateStr]
-                        });
-                    }
-
-                    // Raggruppa i giorni in settimane
-                    const weeks = [];
-                    let currentWeek = [];
-                    monthData.forEach((dayData) => {
-                        if (dayData.isStartOfWeek && currentWeek.length > 0) {
-                            weeks.push(currentWeek);
-                            currentWeek = [];
-                        }
-                        currentWeek.push(dayData);
-                        if (dayData.isEndOfWeek) {
-                            weeks.push(currentWeek);
-                            currentWeek = [];
-                        }
-                    });
-                    if (currentWeek.length > 0) {
-                        weeks.push(currentWeek);
-                    }
-
-                    // Genera le righe della tabella per settimana
-                    weeks.forEach((week, weekIndex) => {
-                        week.forEach((dayData) => {
-                            const row = document.createElement('tr');
-                            
-                            if (dayData.isEndOfWeek) {
-                                row.classList.add('end-of-week');
-                            }
-                            if (dayData.isStartOfWeek) {
-                                row.classList.add('start-of-week');
-                            }
-
-                            if (dayData.headacheData) {
-                                const { intensity, location, medication, notes } = dayData.headacheData;
-                                const intensityValue = parseInt(intensity);
-                                
-                                row.innerHTML = `
-                                    <td>${dayData.date}</td>
-                                    <td class="${dayData.isWeekend ? 'weekend-day' : 'weekday'}">${dayData.weekday}</td>
-                                    <td>
-                                        <div class="intensity-indicator">
-                                            <div class="intensity-bar intensity-${intensityValue}" 
-                                                 style="width: ${(intensityValue/6)*100}%">
-                                            </div>
-                                        </div>
-                                        <small style="color: #666;">${intensityValue}/6</small>
-                                    </td>
-                                    <td><span class="location-badge location-${location.trim()}">${location.trim() === 'D' ? 'Diffusa' : 'Unilaterale'}</span></td>
-                                    <td>${medication}</td>
-                                    <td>${notes}</td>
-                                `;
-                                headacheCount++;
-                            } else {
-                                row.innerHTML = `
-                                    <td>${dayData.date}</td>
-                                    <td class="${dayData.isWeekend ? 'weekend-day' : 'weekday'}">${dayData.weekday}</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                `;
-                            }
-                            
-                            tbody.appendChild(row);
-                        });
-                    });
-
-                    document.getElementById('headacheCount').textContent = headacheCount;
-                };
-                reader.readAsText(file);
-            }
-        });
     </script>
 </body>
 </html>
