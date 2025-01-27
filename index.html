@@ -255,134 +255,96 @@
     </div>
 
     <script>
-        let currentFileIndex = 0;
-        let csvFiles = [];
+        let currentMonthIndex = 0;
+        let monthsData = new Map(); // Mappa di mesi -> array di dati
+        
+        // Funzione per estrarre la data da una stringa in formato ISO
+        function parseDate(dateStr) {
+            const [year, month, day] = dateStr.split('-').map(num => parseInt(num));
+            return new Date(year, month - 1, day);
+        }
 
-        // Funzione per ordinare i file per data
-        function sortFilesByDate(files) {
-            return Array.from(files).filter(file => file.name.endsWith('.csv'))
-                .sort((a, b) => {
-                    const dateA = parseFileDate(a.name);
-                    const dateB = parseFileDate(b.name);
-                    if (!dateA || !dateB) return 0;
-                    return dateA - dateB;
+        // Funzione per ottenere la chiave del mese (YYYY-MM)
+        function getMonthKey(date) {
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+        }
+
+        // Funzione per caricare e processare tutti i file
+        async function loadAllFiles(files) {
+            const allData = new Map(); // Mappa temporanea per tutti i dati
+            
+            // Leggi tutti i file
+            const filePromises = Array.from(files)
+                .filter(file => file.name.endsWith('.csv'))
+                .map(file => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                }));
+
+            try {
+                const contents = await Promise.all(filePromises);
+                
+                // Processa tutti i contenuti
+                contents.forEach(content => {
+                    const lines = content.split('\n');
+                    lines.forEach(line => {
+                        if (line.trim()) {
+                            const [date, intensity, location, medication, notes] = line.split(',');
+                            if (date && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                const parsedDate = parseDate(date);
+                                const monthKey = getMonthKey(parsedDate);
+                                
+                                if (!allData.has(monthKey)) {
+                                    allData.set(monthKey, []);
+                                }
+                                
+                                allData.get(monthKey).push({
+                                    date,
+                                    intensity,
+                                    location,
+                                    medication,
+                                    notes: notes ? notes.trim() : ''
+                                });
+                            }
+                        }
+                    });
                 });
-        }
 
-        // Funzione per estrarre la data dal nome del file
-        function parseFileDate(filename) {
-            const monthNames = {
-                'gennaio': 0, 'febbraio': 1, 'marzo': 2, 'aprile': 3,
-                'maggio': 4, 'giugno': 5, 'luglio': 6, 'agosto': 7,
-                'settembre': 8, 'ottobre': 9, 'novembre': 10, 'dicembre': 11
-            };
-
-            // Rimuovi l'estensione .csv e eventuali spazi
-            const name = filename.toLowerCase().replace('.csv', '').trim();
-            
-            // Cerca il pattern mese_anno o mese-anno
-            for (const [monthName, monthIndex] of Object.entries(monthNames)) {
-                if (name.includes(monthName)) {
-                    // Trova l'anno nel nome del file
-                    const yearMatch = name.match(/\d{4}/);
-                    if (yearMatch) {
-                        const year = parseInt(yearMatch[0]);
-                        return new Date(year, monthIndex);
-                    }
+                // Ordina i mesi
+                monthsData = new Map([...allData.entries()].sort());
+                
+                // Se ci sono dati, mostra il primo mese
+                if (monthsData.size > 0) {
+                    currentMonthIndex = 0;
+                    const months = Array.from(monthsData.keys());
+                    displayMonth(months[currentMonthIndex]);
+                    document.querySelector('.navigation-controls').style.display = 'flex';
+                } else {
+                    alert('Nessun dato valido trovato nei file CSV. Assicurati che i file contengano date nel formato YYYY-MM-DD');
                 }
-            }
-            return null;
-        }
-
-        // Funzione per formattare il nome del mese
-        function formatMonth(date) {
-            const months = [
-                'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-                'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
-            ];
-            return `${months[date.getMonth()]} ${date.getFullYear()}`;
-        }
-
-        // Funzione per aggiornare i controlli di navigazione
-        function updateNavigationControls() {
-            const prevButton = document.getElementById('prevMonth');
-            const nextButton = document.getElementById('nextMonth');
-            const currentMonthSpan = document.getElementById('currentMonth');
-
-            prevButton.disabled = currentFileIndex <= 0;
-            nextButton.disabled = currentFileIndex >= csvFiles.length - 1;
-
-            if (csvFiles.length > 0) {
-                const currentFile = csvFiles[currentFileIndex];
-                const currentDate = parseFileDate(currentFile.name);
-                currentMonthSpan.textContent = formatMonth(currentDate);
-                document.querySelector('.navigation-controls').style.display = 'flex';
+            } catch (error) {
+                console.error('Errore nel caricamento dei file:', error);
+                alert('Errore nel caricamento dei file CSV');
             }
         }
 
-        // Gestione del caricamento della cartella
-        document.getElementById('folderInput').addEventListener('change', function(event) {
-            const files = event.target.files;
-            csvFiles = sortFilesByDate(files).filter(file => parseFileDate(file.name) !== null);
+        // Funzione per visualizzare un mese specifico
+        function displayMonth(monthKey) {
+            const [year, month] = monthKey.split('-').map(num => parseInt(num));
+            const monthData = monthsData.get(monthKey) || [];
+            const daysInMonth = new Date(year, month, 0).getDate();
             
-            if (csvFiles.length > 0) {
-                currentFileIndex = 0;
-                loadCurrentFile();
-            } else {
-                alert('Nessun file CSV valido trovato nella cartella. I file devono essere nominati come "mese_2024.csv" (es. "giugno_2024.csv")');
-            }
-        });
-
-        // Gestione della navigazione
-        document.getElementById('prevMonth').addEventListener('click', function() {
-            if (currentFileIndex > 0) {
-                currentFileIndex--;
-                loadCurrentFile();
-            }
-        });
-
-        document.getElementById('nextMonth').addEventListener('click', function() {
-            if (currentFileIndex < csvFiles.length - 1) {
-                currentFileIndex++;
-                loadCurrentFile();
-            }
-        });
-
-        // Funzione per caricare il file corrente
-        function loadCurrentFile() {
-            const file = csvFiles[currentFileIndex];
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                processFileContent(e.target.result);
-            };
-            
-            reader.readAsText(file);
-            updateNavigationControls();
-        }
-
-        // Funzione per processare il contenuto del file
-        function processFileContent(content) {
-            const lines = content.split('\n');
-            let headacheCount = 0;
-            const tbody = document.getElementById('headacheTable').getElementsByTagName('tbody')[0];
-            tbody.innerHTML = ''; // Clear existing data
-
-            // Creare un oggetto per mappare le date con i dati delle cefalee
+            // Crea un oggetto per mappare le date con i dati delle cefalee
             const headacheData = {};
-            lines.forEach(line => {
-                if (line.trim()) {
-                    const [date, intensity, location, medication, notes] = line.split(',');
-                    headacheData[date] = { intensity, location, medication, notes };
-                }
+            monthData.forEach(data => {
+                headacheData[data.date] = data;
             });
 
-            // Estrarre anno e mese dal file corrente
-            const currentFile = csvFiles[currentFileIndex];
-            const currentDate = parseFileDate(currentFile.name);
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth() + 1;
-            const daysInMonth = new Date(year, month, 0).getDate();
+            const tbody = document.getElementById('headacheTable').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+            let headacheCount = 0;
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateStr = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
@@ -394,7 +356,6 @@
                 const isStriped = isStripedDay(year, month, day);
                 
                 if (dateStr in headacheData) {
-                    // Giorno con cefalea
                     const { intensity, location, medication, notes } = headacheData[dateStr];
                     const row = document.createElement('tr');
                     if (endOfWeek) {
@@ -426,12 +387,12 @@
                     tbody.appendChild(row);
                     headacheCount++;
                 } else {
-                    // Giorno senza cefalea
                     tbody.appendChild(createEmptyRow(formattedDate, weekday, isWeekendDay, endOfWeek, startOfWeek, isStriped));
                 }
             }
 
             document.getElementById('headacheCount').textContent = headacheCount;
+            updateNavigationControls();
         }
 
         // Funzione per creare una riga vuota per una data
@@ -497,6 +458,52 @@
             const date = new Date(year, month - 1, day);
             return date.getDate() % 2 === 0;
         }
+
+        // Funzione per aggiornare i controlli di navigazione
+        function updateNavigationControls() {
+            const months = Array.from(monthsData.keys());
+            const currentMonthKey = months[currentMonthIndex];
+            const [year, month] = currentMonthKey.split('-').map(num => parseInt(num));
+            
+            const prevButton = document.getElementById('prevMonth');
+            const nextButton = document.getElementById('nextMonth');
+            const currentMonthSpan = document.getElementById('currentMonth');
+
+            prevButton.disabled = currentMonthIndex <= 0;
+            nextButton.disabled = currentMonthIndex >= months.length - 1;
+            currentMonthSpan.textContent = formatMonth(new Date(year, month - 1));
+        }
+
+        // Funzione per formattare il nome del mese
+        function formatMonth(date) {
+            const months = [
+                'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+            ];
+            return `${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
+
+        // Gestione del caricamento della cartella
+        document.getElementById('folderInput').addEventListener('change', function(event) {
+            loadAllFiles(event.target.files);
+        });
+
+        // Gestione della navigazione
+        document.getElementById('prevMonth').addEventListener('click', function() {
+            const months = Array.from(monthsData.keys());
+            if (currentMonthIndex > 0) {
+                currentMonthIndex--;
+                displayMonth(months[currentMonthIndex]);
+            }
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', function() {
+            const months = Array.from(monthsData.keys());
+            if (currentMonthIndex < months.length - 1) {
+                currentMonthIndex++;
+                displayMonth(months[currentMonthIndex]);
+            }
+        });
     </script>
 </body>
 </html>
