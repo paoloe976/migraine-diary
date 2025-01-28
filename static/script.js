@@ -724,19 +724,52 @@ function setupFileInput() {
 function setupDropdownMenu() {
     const menuButton = document.getElementById('menuButton');
     const dropdownMenu = document.getElementById('dropdownMenu');
+    const exportPdfButton = document.getElementById('exportPdf');
+    const exportCsvButton = document.getElementById('exportCsv');
+    const importButton = document.getElementById('importButton');
+    const fileInput = document.getElementById('fileInput');
 
-    // Apre/chiude il menu al click del pulsante
+    // Mostra/nascondi il menu quando si clicca sul pulsante
     menuButton.addEventListener('click', (e) => {
         e.stopPropagation();
         dropdownMenu.classList.toggle('show');
     });
 
-    // Chiude il menu quando si clicca fuori
+    // Nascondi il menu quando si clicca fuori
     document.addEventListener('click', (e) => {
         if (!dropdownMenu.contains(e.target) && !menuButton.contains(e.target)) {
             dropdownMenu.classList.remove('show');
         }
     });
+
+    // Gestione dei pulsanti del menu
+    if (exportPdfButton) {
+        exportPdfButton.addEventListener('click', () => {
+            exportCurrentMonth();
+            dropdownMenu.classList.remove('show');
+        });
+    }
+
+    if (exportCsvButton) {
+        exportCsvButton.addEventListener('click', () => {
+            exportToCsv();
+            dropdownMenu.classList.remove('show');
+        });
+    }
+
+    if (importButton && fileInput) {
+        importButton.addEventListener('click', () => {
+            fileInput.click();
+            dropdownMenu.classList.remove('show');
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            if (e.target.files.length > 0) {
+                await loadAllFiles(e.target.files);
+                displayMonth(getCurrentMonth());
+            }
+        });
+    }
 }
 
 // Funzione per creare la barra dell'intensità
@@ -784,6 +817,20 @@ function createNotesInput(value) {
     return `<input type="text" class="edit-input" name="notes" value="${value || ''}">`;
 }
 
+// Funzione per cancellare i valori di una riga
+function clearValues(row) {
+    // Svuota i campi
+    const intensitySelect = row.querySelector('select[name="intensity"]');
+    const locationSelect = row.querySelector('select[name="location"]');
+    const medicationInput = row.querySelector('input[name="medication"]');
+    const notesInput = row.querySelector('input[name="notes"]');
+
+    if (intensitySelect) intensitySelect.value = '';
+    if (locationSelect) locationSelect.value = '';
+    if (medicationInput) medicationInput.value = '';
+    if (notesInput) notesInput.value = '';
+}
+
 // Funzione per salvare una riga
 function saveRow(row) {
     const date = row.getAttribute('data-date');
@@ -827,29 +874,41 @@ function saveRow(row) {
     // Salva i dati
     saveAllData();
 
-    // Aggiorna la visualizzazione mantenendo il mese corrente
-    displayMonth(monthKey);
-}
-
-// Funzione per cancellare i valori di una riga
-function clearValues(row) {
-    // Svuota i campi
-    const intensitySelect = row.querySelector('select[name="intensity"]');
-    const locationSelect = row.querySelector('select[name="location"]');
-    const medicationInput = row.querySelector('input[name="medication"]');
-    const notesInput = row.querySelector('input[name="notes"]');
-
-    if (intensitySelect) intensitySelect.value = '';
-    if (locationSelect) locationSelect.value = '';
-    if (medicationInput) medicationInput.value = '';
-    if (notesInput) notesInput.value = '';
+    // Rimuovi la classe editing e aggiorna solo il contenuto della riga
+    row.classList.remove('editing');
+    const cells = Array.from(row.cells);
+    
+    // Aggiorna le celle con i nuovi valori
+    cells[2].innerHTML = intensity ? createIntensityBar(intensity) : '';
+    cells[3].textContent = location || '';
+    cells[4].textContent = medication || '';
+    cells[5].textContent = notes || '';
+    cells[6].innerHTML = ''; // Rimuovi i pulsanti
 }
 
 // Funzione per annullare la modifica di una riga
 function cancelEdit(row) {
     const date = row.getAttribute('data-date');
-    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
-    displayMonth(monthKey);
+    const monthKey = date.substring(0, 7);
+    const data = monthsData.get(monthKey) || [];
+    const entry = data.find(e => e.date === date) || {
+        date,
+        intensity: '',
+        location: '',
+        medication: '',
+        notes: ''
+    };
+
+    // Rimuovi la classe editing
+    row.classList.remove('editing');
+    
+    // Ripristina i valori originali
+    const cells = Array.from(row.cells);
+    cells[2].innerHTML = entry.intensity ? createIntensityBar(entry.intensity) : '';
+    cells[3].textContent = entry.location || '';
+    cells[4].textContent = entry.medication || '';
+    cells[5].textContent = entry.notes || '';
+    cells[6].innerHTML = ''; // Rimuovi i pulsanti
 }
 
 // Funzione per ottenere il mese corrente nel formato YYYY-MM
@@ -1037,8 +1096,9 @@ function setupMonthNavigation() {
 function makeRowEditable(row) {
     if (row.classList.contains('editing')) return;
     
-    // Se c'è già una riga in modifica, annulla quella modifica
-    finishCurrentEdit();
+    // Se c'è già una riga in modifica, non permettere di editare altre righe
+    const currentEditingRow = document.querySelector('tr.editing');
+    if (currentEditingRow) return;
     
     const date = row.getAttribute('data-date');
     const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
