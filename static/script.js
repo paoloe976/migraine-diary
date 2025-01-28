@@ -231,8 +231,7 @@ function displayMonth(monthKey) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th>Giorno</th>
-                <th>Giorno</th>
+                <th colspan="2">Giorno</th>
                 <th>Intensità</th>
                 <th>Sede</th>
                 <th>Farmaco</th>
@@ -724,52 +723,37 @@ function setupFileInput() {
 function setupDropdownMenu() {
     const menuButton = document.getElementById('menuButton');
     const dropdownMenu = document.getElementById('dropdownMenu');
-    const exportPdfButton = document.getElementById('exportPdf');
-    const exportCsvButton = document.getElementById('exportCsv');
     const importButton = document.getElementById('importButton');
     const fileInput = document.getElementById('fileInput');
+    const exportPdfButton = document.getElementById('exportPdf');
+    const exportCsvButton = document.getElementById('exportCsv');
 
-    // Mostra/nascondi il menu quando si clicca sul pulsante
-    menuButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('show');
-    });
-
-    // Nascondi il menu quando si clicca fuori
+    // Chiudi il menu se si clicca fuori
     document.addEventListener('click', (e) => {
-        if (!dropdownMenu.contains(e.target) && !menuButton.contains(e.target)) {
+        if (!menuButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.classList.remove('show');
         }
     });
 
-    // Gestione dei pulsanti del menu
-    if (exportPdfButton) {
-        exportPdfButton.addEventListener('click', () => {
-            exportCurrentMonth();
-            dropdownMenu.classList.remove('show');
-        });
-    }
+    // Toggle del menu quando si clicca sul pulsante
+    menuButton.addEventListener('click', () => {
+        dropdownMenu.classList.toggle('show');
+    });
 
-    if (exportCsvButton) {
-        exportCsvButton.addEventListener('click', () => {
-            exportToCsv();
-            dropdownMenu.classList.remove('show');
-        });
-    }
+    // Gestione del pulsante di importazione
+    importButton.addEventListener('click', () => {
+        fileInput.click();
+        dropdownMenu.classList.remove('show');
+    });
 
-    if (importButton && fileInput) {
-        importButton.addEventListener('click', () => {
-            fileInput.click();
-            dropdownMenu.classList.remove('show');
-        });
+    // Chiudi il menu dopo aver cliccato su un'opzione
+    exportPdfButton.addEventListener('click', () => {
+        dropdownMenu.classList.remove('show');
+    });
 
-        fileInput.addEventListener('change', async (e) => {
-            if (e.target.files.length > 0) {
-                await loadAllFiles(e.target.files);
-                displayMonth(getCurrentMonth());
-            }
-        });
-    }
+    exportCsvButton.addEventListener('click', () => {
+        dropdownMenu.classList.remove('show');
+    });
 }
 
 // Funzione per creare la barra dell'intensità
@@ -988,13 +972,11 @@ function createDataTable(entries) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th>G</th>
-                <th>Giorno</th>
+                <th colspan="2">Giorno</th>
                 <th>Intensità</th>
                 <th>Sede</th>
                 <th>Farmaco</th>
                 <th>Note</th>
-                <th></th>
             </tr>
         </thead>
         <tbody>

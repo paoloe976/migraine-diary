@@ -88,6 +88,10 @@ th {
     padding: 12px 8px;
 }
 
+th[colspan] {
+    text-align: center;
+}
+
 /* Righe alternate */
 tbody tr:nth-child(even) td {
     background-color: var(--striped-color);
