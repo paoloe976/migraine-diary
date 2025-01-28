@@ -9,9 +9,16 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 import io
 from functools import wraps
+import secrets
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-key-change-this')  # Cambia questa chiave in produzione
+# Use a strong secret key for sessions
+app.secret_key = secrets.token_hex(32)  # Generate a secure random key
+# Configure session to be more secure and last longer
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # Session lasts 1 hour
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 CORS(app)
 
 # Permetti HTTP in sviluppo locale
@@ -50,17 +57,33 @@ def login_required(f):
 
 @app.route('/login')
 def login():
-    if 'credentials' not in session:
+    print("=== Login Route ===")
+    print("Session contents:", dict(session))
+    
+    if 'credentials' in session:
+        # Verify if credentials are still valid
+        service = get_google_drive_service()
+        if service:
+            print("Credentials valid, redirecting to index")
+            return redirect(url_for('index'))
+        else:
+            print("Credentials invalid, clearing session")
+            session.clear()
+    
+    try:
         flow = InstalledAppFlow.from_client_secrets_file(get_credentials_path(), SCOPES)
         flow.redirect_uri = url_for('oauth2callback', _external=True)
         authorization_url, state = flow.authorization_url(
             access_type='offline',
-            include_granted_scopes='true'
+            include_granted_scopes='true',
+            prompt='consent'  # Force consent screen to get refresh token
         )
         session['state'] = state
+        print("Redirecting to authorization URL")
         return redirect(authorization_url)
-    
-    return redirect(url_for('index'))
+    except Exception as e:
+        print(f"Error in login route: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/oauth2callback')
 def oauth2callback():
@@ -74,6 +97,22 @@ def oauth2callback():
         flow.fetch_token(authorization_response=authorization_response)
         
         credentials = flow.credentials
+        
+        # Debug logging
+        print("=== OAuth Callback Debug ===")
+        print(f"Token present: {bool(credentials.token)}")
+        print(f"Refresh token present: {bool(credentials.refresh_token)}")
+        print(f"Token URI present: {bool(credentials.token_uri)}")
+        print(f"Client ID present: {bool(credentials.client_id)}")
+        print(f"Client secret present: {bool(credentials.client_secret)}")
+        print(f"Scopes present: {bool(credentials.scopes)}")
+        
+        # Ensure all required fields are present
+        if not all([credentials.token, credentials.refresh_token, 
+                   credentials.token_uri, credentials.client_id, 
+                   credentials.client_secret]):
+            raise Exception("Missing required OAuth fields")
+        
         session['credentials'] = {
             'token': credentials.token,
             'refresh_token': credentials.refresh_token,
@@ -82,6 +121,11 @@ def oauth2callback():
             'client_secret': credentials.client_secret,
             'scopes': credentials.scopes
         }
+        
+        # Print session data for debugging
+        print("=== Session Credentials Debug ===")
+        print("Fields in session:", list(session['credentials'].keys()))
+        print("Values present:", {k: bool(v) for k, v in session['credentials'].items()})
         
         # Ottieni l'email dell'utente
         service = build('oauth2', 'v2', credentials=credentials)
@@ -111,25 +155,48 @@ def logout():
 
 def get_google_drive_service():
     if 'credentials' not in session:
+        print("No credentials in session")
         return None
         
-    creds = Credentials(
-        **session['credentials']
-    )
-    
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-            session['credentials'] = {
-                'token': creds.token,
-                'refresh_token': creds.refresh_token,
-                'token_uri': creds.token_uri,
-                'client_id': creds.client_id,
-                'client_secret': creds.client_secret,
-                'scopes': creds.scopes
-            }
-    
-    return build('drive', 'v3', credentials=creds)
+    try:
+        print("=== Session Debug ===")
+        print("Session credentials:", session.get('credentials'))
+        
+        creds_data = session['credentials']
+        # Ensure all required fields are present
+        required_fields = ['token', 'refresh_token', 'token_uri', 'client_id', 'client_secret']
+        for field in required_fields:
+            if not creds_data.get(field):
+                print(f"Missing required field: {field}")
+                return None
+                
+        creds = Credentials(
+            token=creds_data['token'],
+            refresh_token=creds_data['refresh_token'],
+            token_uri=creds_data['token_uri'],
+            client_id=creds_data['client_id'],
+            client_secret=creds_data['client_secret'],
+            scopes=creds_data['scopes']
+        )
+        
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                print("Refreshing credentials...")
+                creds.refresh(Request())
+                session['credentials'] = {
+                    'token': creds.token,
+                    'refresh_token': creds.refresh_token,
+                    'token_uri': creds.token_uri,
+                    'client_id': creds.client_id,
+                    'client_secret': creds.client_secret,
+                    'scopes': creds.scopes
+                }
+                session.modified = True
+        
+        return build('drive', 'v3', credentials=creds)
+    except Exception as e:
+        print(f"Error in get_google_drive_service: {str(e)}")
+        return None
 
 def load_data():
     global FILE_ID
@@ -172,7 +239,7 @@ def load_data():
                 body={
                     'type': 'user',
                     'role': 'writer',
-                    'emailAddress': os.environ.get('GOOGLE_USER_EMAIL', 'your.email@gmail.com')
+                    'emailAddress': os.environ.get('GOOGLE_USER_EMAIL')
                 }
             ).execute()
             print("Permissions set")

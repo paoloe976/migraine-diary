@@ -1261,7 +1261,7 @@ function checkAuthStatus() {
                 window.location.href = '/login';
             } else {
                 // Autenticato
-                loadData();  // Carica i dati solo se autenticato
+                loadDataFromFile();  // Carica i dati solo se autenticato
             }
         })
         .catch(error => {
