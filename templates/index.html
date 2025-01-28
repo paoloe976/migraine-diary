@@ -76,7 +76,7 @@
                         <option value="diffuso">Diffuso</option>
                     </select>
                 </td>
-                <td><input type="text" class="edit-input" name="medication"></td>
+                <td><input type="text" class="edit-input" name="medication" list="medications-list"></td>
                 <td><input type="text" class="edit-input" name="notes"></td>
                 <td class="action-buttons">
                     <button class="save-btn" title="Salva">✓</button>
@@ -85,6 +85,9 @@
                 </td>
             </tr>
         </template>
+
+        <!-- Datalist per l'autocomplete dei farmaci -->
+        <datalist id="medications-list"></datalist>
 
         <script src="/static/script.js"></script>
     </div>

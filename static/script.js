@@ -800,6 +800,9 @@ function clearValues(row) {
 
 // Funzione per salvare una riga
 function saveRow(row) {
+    // Rimuovi classe dal body
+    document.body.classList.remove('has-editing-row');
+    
     const date = row.getAttribute('data-date');
     const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
     const monthData = monthsData.get(monthKey) || [];
@@ -855,27 +858,12 @@ function saveRow(row) {
 
 // Funzione per annullare la modifica di una riga
 function cancelEdit(row) {
+    // Rimuovi classe dal body
+    document.body.classList.remove('has-editing-row');
+    
     const date = row.getAttribute('data-date');
     const monthKey = date.substring(0, 7);
-    const data = monthsData.get(monthKey) || [];
-    const entry = data.find(e => e.date === date) || {
-        date,
-        intensity: '',
-        location: '',
-        medication: '',
-        notes: ''
-    };
-
-    // Rimuovi la classe editing
-    row.classList.remove('editing');
-    
-    // Ripristina i valori originali
-    const cells = Array.from(row.cells);
-    cells[2].innerHTML = entry.intensity ? createIntensityBar(entry.intensity) : '';
-    cells[3].textContent = entry.location || '';
-    cells[4].textContent = entry.medication || '';
-    cells[5].textContent = entry.notes || '';
-    cells[6].innerHTML = ''; // Rimuovi i pulsanti
+    displayMonth(monthKey);
 }
 
 // Funzione per ottenere il mese corrente nel formato YYYY-MM
@@ -1067,9 +1055,8 @@ function makeRowEditable(row) {
     
     const date = row.getAttribute('data-date');
     const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
-    const cells = Array.from(row.cells);
     const data = monthsData.get(monthKey) || [];
-    const entry = data.find(e => e.date === date) || { 
+    const entry = data.find(e => e.date === date) || {
         date,
         intensity: '',
         location: '',
@@ -1077,44 +1064,120 @@ function makeRowEditable(row) {
         notes: ''
     };
 
-    // Aggiungi la classe editing alla riga
     row.classList.add('editing');
-
-    // Salva il contenuto originale delle celle
-    row.setAttribute('data-original', JSON.stringify(entry));
-
-    // Crea gli input per ogni cella editabile
-    cells[2].innerHTML = createIntensityInput(entry.intensity === undefined ? '' : entry.intensity);
-    cells[3].innerHTML = createLocationInput(entry.location === undefined ? '' : entry.location);
-    cells[4].innerHTML = createMedicationInput(entry.medication === undefined ? '' : entry.medication);
-    cells[5].innerHTML = createNotesInput(entry.notes === undefined ? '' : entry.notes);
     
-    // Aggiungi i pulsanti dopo l'ultima cella
-    const lastCell = cells[cells.length - 1];
-    lastCell.insertAdjacentHTML('beforeend', `
-        <div class="action-buttons-container">
-            <button class="save-btn" title="Salva">✓</button>
-            <button class="clear-btn" title="⌫">⌫</button>
-            <button class="cancel-btn" title="Annulla">✕</button>
-        </div>
-    `);
-
-    // Aggiungi gli event listener per i pulsanti
-    const saveBtn = lastCell.querySelector('.save-btn');
-    const clearBtn = lastCell.querySelector('.clear-btn');
-    const cancelBtn = lastCell.querySelector('.cancel-btn');
+    // Crea gli input per ogni campo
+    const cells = Array.from(row.cells);
+    cells[2].innerHTML = createIntensityInput(entry.intensity);
+    cells[3].innerHTML = createLocationInput(entry.location);
+    cells[4].innerHTML = createMedicationInput(entry.medication);
+    cells[5].innerHTML = createNotesInput(entry.notes);
     
-    saveBtn.addEventListener('click', () => saveRow(row));
-    clearBtn.addEventListener('click', () => clearValues(row));
-    cancelBtn.addEventListener('click', () => cancelEdit(row));
-
-    // Imposta l'autocompletamento per il farmaco
+    // Aggiungi i pulsanti di azione
+    const actionButtons = document.createElement('div');
+    actionButtons.className = 'action-buttons-container';
+    
+    const saveButton = document.createElement('button');
+    saveButton.innerHTML = '✓';
+    saveButton.className = 'action-button save-btn';
+    saveButton.onclick = () => saveRow(row);
+    
+    const clearButton = document.createElement('button');
+    clearButton.innerHTML = '⌫';
+    clearButton.className = 'action-button clear-btn';
+    clearButton.onclick = () => clearValues(row);
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.innerHTML = '✕';
+    cancelButton.className = 'action-button cancel-btn';
+    cancelButton.onclick = () => cancelEdit(row);
+    
+    actionButtons.appendChild(saveButton);
+    actionButtons.appendChild(clearButton);
+    actionButtons.appendChild(cancelButton);
+    
+    cells[5].appendChild(actionButtons);
+    
+    // Inizializza l'autocomplete per il farmaco
     const medicationInput = cells[4].querySelector('input[name="medication"]');
     if (medicationInput) {
         setupMedicationAutocomplete(medicationInput);
     }
+    
+    // Focus sull'input dell'intensità
+    const intensityInput = cells[2].querySelector('input');
+    if (intensityInput) {
+        intensityInput.focus();
+    }
+}
 
-    // Focus sul primo input
-    const firstInput = row.querySelector('input, select');
-    if (firstInput) firstInput.focus();
+// Funzione per annullare la modifica di una riga
+function cancelEdit(row) {
+    const date = row.getAttribute('data-date');
+    const monthKey = date.substring(0, 7);
+    const data = monthsData.get(monthKey) || [];
+    const entry = data.find(e => e.date === date) || {
+        date,
+        intensity: '',
+        location: '',
+        medication: '',
+        notes: ''
+    };
+
+    // Rimuovi la classe editing
+    row.classList.remove('editing');
+    
+    // Ripristina i valori originali
+    const cells = Array.from(row.cells);
+    cells[2].innerHTML = entry.intensity ? createIntensityBar(entry.intensity) : '';
+    cells[3].textContent = entry.location || '';
+    cells[4].textContent = entry.medication || '';
+    cells[5].textContent = entry.notes || '';
+    cells[6].innerHTML = ''; // Rimuovi i pulsanti
+}
+
+// Funzione per salvare una riga
+function saveRow(row) {
+    const date = row.getAttribute('data-date');
+    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
+    const monthData = monthsData.get(monthKey) || [];
+    
+    // Ottieni i valori dagli input
+    const cells = Array.from(row.cells);
+    const intensity = cells[2].querySelector('input')?.value || '';
+    const location = cells[3].querySelector('input')?.value.trim() || '';
+    const medication = cells[4].querySelector('input')?.value.trim() || '';
+    const notes = cells[5].querySelector('textarea')?.value.trim() || '';
+    
+    // Trova l'indice dell'entry esistente o -1 se non esiste
+    const entryIndex = monthData.findIndex(e => e.date === date);
+    
+    // Se tutti i campi sono vuoti, rimuovi l'entry
+    if (!intensity && !location && !medication && !notes) {
+        if (entryIndex !== -1) {
+            monthData.splice(entryIndex, 1);
+        }
+    } else {
+        // Altrimenti, aggiorna o aggiungi l'entry
+        const entry = {
+            date,
+            intensity,
+            location: normalizeLocation(location),
+            medication,
+            notes
+        };
+        
+        if (entryIndex !== -1) {
+            monthData[entryIndex] = entry;
+        } else {
+            monthData.push(entry);
+        }
+    }
+    
+    // Aggiorna i dati e salva
+    monthsData.set(monthKey, monthData);
+    saveAllData();
+    
+    // Aggiorna la visualizzazione
+    displayMonth(monthKey);
 }
