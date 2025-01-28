@@ -62,17 +62,22 @@ def get_google_drive_service():
 
 def load_data():
     global FILE_ID
+    print("=== LOAD DATA ===")
     service = get_google_drive_service()
+    print("Service created")
     
     # Se non abbiamo ancora il FILE_ID, cerca il file
     if not FILE_ID:
+        print("Searching for file...")
         results = service.files().list(
-            q="name='headache_data.json'",
+            q="name='headache_data.json' and trashed=false",
             spaces='drive',
             fields='files(id, name)').execute()
         files = results.get('files', [])
+        print(f"Found {len(files)} files")
         
         if not files:
+            print("Creating new file...")
             # Il file non esiste, crealo
             file_metadata = {
                 'name': 'headache_data.json',
@@ -87,19 +92,24 @@ def load_data():
                 fields='id'
             ).execute()
             FILE_ID = file.get('id')
+            print(f"Created file with ID: {FILE_ID}")
             
+            print("Setting permissions...")
             # Rendi il file visibile nel Drive
             service.permissions().create(
                 fileId=FILE_ID,
                 body={
                     'type': 'user',
                     'role': 'writer',
-                    'emailAddress': os.environ.get('GOOGLE_USER_EMAIL', 'your.email@gmail.com')  # Sostituisci con la tua email
+                    'emailAddress': os.environ.get('GOOGLE_USER_EMAIL', 'your.email@gmail.com')
                 }
             ).execute()
+            print("Permissions set")
         else:
             FILE_ID = files[0]['id']
+            print(f"Using existing file with ID: {FILE_ID}")
     
+    print(f"Downloading file {FILE_ID}...")
     # Scarica il file
     request = service.files().get_media(fileId=FILE_ID)
     fh = io.BytesIO()
@@ -107,20 +117,28 @@ def load_data():
     done = False
     while done is False:
         status, done = downloader.next_chunk()
+        print(f"Download {int(status.progress() * 100)}%")
     
     fh.seek(0)
-    return json.loads(fh.read().decode('utf-8'))
+    data = json.loads(fh.read().decode('utf-8'))
+    print(f"Data loaded: {data}")
+    return data
 
 def save_data(data):
+    print("=== SAVE DATA ===")
+    print(f"Saving data: {data}")
     service = get_google_drive_service()
+    print("Service created")
     
     # Prepara il file da caricare
     fh = io.BytesIO(json.dumps(data).encode('utf-8'))
     media = MediaIoBaseUpload(fh, mimetype='application/json', resumable=True)
     
+    print(f"Updating file {FILE_ID}...")
     # Aggiorna il file esistente
-    service.files().update(fileId=FILE_ID, media_body=media).execute()
-
+    file = service.files().update(fileId=FILE_ID, media_body=media).execute()
+    print(f"File updated: {file}")
+    
 @app.route('/')
 def index():
     return send_from_directory('templates', 'index.html')
