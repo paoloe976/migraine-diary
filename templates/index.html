@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diario Cefalee</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/it.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
 </head>
 <body>
     <div class="container">
@@ -36,7 +42,9 @@
                 <span class="arrow">&larr;</span>
                 <span class="text">Mese Precedente</span>
             </button>
-            <span id="currentMonth"></span>
+            <div class="month-selector">
+                <input type="text" id="monthSelect" class="flatpickr" placeholder="Seleziona mese..." readonly>
+            </div>
             <button class="nav-button" id="nextMonth">
                 <span class="text">Mese Successivo</span>
                 <span class="arrow">&rarr;</span>

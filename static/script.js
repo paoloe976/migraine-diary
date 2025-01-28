@@ -223,9 +223,6 @@ function displayMonth(monthKey) {
     // Ottieni i dati del mese
     const monthData = monthsData.get(monthKey) || [];
     
-    // Aggiorna il titolo del mese
-    document.getElementById('currentMonth').textContent = formatMonthTitle(monthKey);
-    
     // Crea la tabella
     const table = document.createElement('table');
     table.innerHTML = `
@@ -365,11 +362,9 @@ function updateNavigationControls() {
     
     const prevButton = document.getElementById('prevMonth');
     const nextButton = document.getElementById('nextMonth');
-    const currentMonthSpan = document.getElementById('currentMonth');
 
     prevButton.disabled = currentIndex <= 0;
     nextButton.disabled = currentIndex >= months.length - 1;
-    currentMonthSpan.textContent = formatMonthTitle(currentMonth);
     
     // Mostra/nascondi i controlli di navigazione
     const navigationControls = document.querySelector('.navigation-controls');
@@ -670,17 +665,65 @@ async function saveAllData() {
 document.addEventListener('DOMContentLoaded', async () => {
     await loadDataFromFile();
     
-    // Imposta e mostra il mese corrente
-    const today = new Date();
-    currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    // Mostra i controlli di navigazione
+    document.querySelector('.navigation-controls').style.display = 'flex';
     
-    // Se non ci sono dati per il mese corrente, crealo
-    if (!monthsData.has(currentMonth)) {
-        monthsData.set(currentMonth, []);
-    }
-    
+    // Imposta il mese corrente
+    currentMonth = getCurrentMonth();
     displayMonth(currentMonth);
-    setupMonthNavigation();
+    
+    // Inizializza Flatpickr per il selettore del mese
+    const monthPicker = flatpickr("#monthSelect", {
+        locale: 'it',
+        dateFormat: "Y-m",
+        defaultDate: currentMonth,
+        plugins: [
+            new monthSelectPlugin({
+                shorthand: false,
+                dateFormat: "Y-m",
+                altFormat: "F Y",
+                theme: "light"
+            })
+        ],
+        static: true,
+        onChange: function(selectedDates, dateStr) {
+            currentMonth = dateStr;
+            displayMonth(currentMonth);
+        }
+    });
+    
+    // Aggiungi event listener per i pulsanti di navigazione
+    document.getElementById('prevMonth').addEventListener('click', () => {
+        const [year, month] = currentMonth.split('-');
+        let newMonth = parseInt(month) - 1;
+        let newYear = parseInt(year);
+        
+        if (newMonth < 1) {
+            newMonth = 12;
+            newYear--;
+        }
+        
+        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+        monthPicker.setDate(currentMonth);  // Aggiorna anche il calendario
+        displayMonth(currentMonth);
+    });
+    
+    document.getElementById('nextMonth').addEventListener('click', () => {
+        const [year, month] = currentMonth.split('-');
+        let newMonth = parseInt(month) + 1;
+        let newYear = parseInt(year);
+        
+        if (newMonth > 12) {
+            newMonth = 1;
+            newYear++;
+        }
+        
+        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
+        monthPicker.setDate(currentMonth);  // Aggiorna anche il calendario
+        displayMonth(currentMonth);
+    });
+
+    // Setup delle altre funzionalità
     setupExportPdf();
     setupFileInput();
     setupDropdownMenu();
@@ -859,12 +902,27 @@ function saveRow(row) {
 
 // Funzione per annullare la modifica di una riga
 function cancelEdit(row) {
-    // Rimuovi classe dal body
-    document.body.classList.remove('has-editing-row');
-    
     const date = row.getAttribute('data-date');
     const monthKey = date.substring(0, 7);
-    displayMonth(monthKey);
+    const data = monthsData.get(monthKey) || [];
+    const entry = data.find(e => e.date === date) || {
+        date,
+        intensity: '',
+        location: '',
+        medication: '',
+        notes: ''
+    };
+
+    // Rimuovi la classe editing
+    row.classList.remove('editing');
+    
+    // Ripristina i valori originali
+    const cells = Array.from(row.cells);
+    cells[2].innerHTML = entry.intensity ? createIntensityBar(entry.intensity) : '';
+    cells[3].textContent = entry.location || '';
+    cells[4].textContent = entry.medication || '';
+    cells[5].textContent = entry.notes || '';
+    cells[6].innerHTML = ''; // Rimuovi i pulsanti
 }
 
 // Funzione per ottenere il mese corrente nel formato YYYY-MM
@@ -1144,11 +1202,11 @@ function saveRow(row) {
     const monthData = monthsData.get(monthKey) || [];
     
     // Ottieni i valori dagli input
-    const intensity = row.querySelector('select[name="intensity"]')?.value || '';
-    const location = row.querySelector('select[name="location"]')?.value || '';
-    const medication = row.querySelector('input[name="medication"]')?.value.trim() || '';
-    const notes = row.querySelector('input[name="notes"]')?.value.trim() || '';
-    
+    const intensity = row.querySelector('select[name="intensity"]').value;
+    const location = row.querySelector('select[name="location"]').value;
+    const medication = row.querySelector('input[name="medication"]').value;
+    const notes = row.querySelector('input[name="notes"]').value;
+
     // Trova l'indice dell'entry esistente o -1 se non esiste
     const entryIndex = monthData.findIndex(e => e.date === date);
     
