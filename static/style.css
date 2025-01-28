@@ -880,3 +880,13 @@ th:nth-child(2) {
         font-size: 1.5em;
     }
 }
+
+#currentMonth {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1976d2;
+    text-transform: capitalize;
+    margin: 0 15px;
+    min-width: 200px;
+    text-align: center;
+}
