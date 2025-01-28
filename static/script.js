@@ -684,6 +684,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupExportPdf();
     setupFileInput();
     setupDropdownMenu();
+    checkAuthStatus();
 });
 
 // Aggiungi event listener per il pulsante di esportazione
@@ -1054,7 +1055,7 @@ function makeRowEditable(row) {
     if (currentEditingRow) return;
     
     const date = row.getAttribute('data-date');
-    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
+    const monthKey = date.substring(0, 7);
     const data = monthsData.get(monthKey) || [];
     const entry = data.find(e => e.date === date) || {
         date,
@@ -1250,3 +1251,25 @@ function setupNotesOverlay() {
         }
     });
 }
+
+// Gestione autenticazione
+function checkAuthStatus() {
+    fetch('/get_data')
+        .then(response => {
+            if (response.status === 403) {
+                // Non autenticato o non autorizzato
+                window.location.href = '/login';
+            } else {
+                // Autenticato
+                loadData();  // Carica i dati solo se autenticato
+            }
+        })
+        .catch(error => {
+            console.error('Error checking auth status:', error);
+        });
+}
+
+// Chiama checkAuthStatus all'avvio
+document.addEventListener('DOMContentLoaded', function() {
+    checkAuthStatus();
+});

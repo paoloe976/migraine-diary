@@ -724,16 +724,14 @@ td.action-buttons {
 
 .dropdown-content {
     display: none;
-    position: fixed;
-    top: auto;
-    right: 16px;
-    width: calc(100% - 32px);
-    max-width: 300px;
-    margin-top: 8px;
-    background-color: white;
-    border: 1px solid #ddd;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    z-index: 9999;
+    position: absolute;
+    right: 0;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+    margin-top: 5px;
 }
 
 .dropdown-content.show {
@@ -741,23 +739,23 @@ td.action-buttons {
 }
 
 .dropdown-item {
+    padding: 12px 16px;
+    text-decoration: none;
     display: block;
-    width: 100%;
-    padding: 8px 16px;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    font-size: 14px;
     color: #333;
-    transition: background-color 0.2s;
+    cursor: pointer;
 }
 
 .dropdown-item:hover {
-    background-color: #f5f5f5;
+    background-color: #f8f9fa;
 }
 
-/* Stile per il pulsante dei tre puntini */
+.dropdown-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0.5rem 0;
+}
+
 .menu-trigger {
     font-size: 24px;
     background: none;
@@ -777,6 +775,10 @@ td.action-buttons {
 
 .menu-trigger:hover {
     background-color: rgba(25, 118, 210, 0.1);
+}
+
+.menu-trigger:active {
+    background-color: #e9ecef;
 }
 
 /* Stili mobile */
@@ -1024,4 +1026,35 @@ th:nth-child(2) {
     width: 40px;
     text-align: center;
     padding: 8px 4px;
+}
+
+.auth-buttons {
+    margin-left: auto;
+    padding: 0 1rem;
+}
+
+.auth-buttons a {
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.login-btn {
+    background-color: #4285f4;
+    color: white;
+}
+
+.login-btn:hover {
+    background-color: #357abd;
+}
+
+.logout-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
 }
