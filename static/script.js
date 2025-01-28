@@ -663,6 +663,9 @@ async function saveAllData() {
 
 // All'avvio, carica i dati e mostra il mese corrente
 document.addEventListener('DOMContentLoaded', async () => {
+    // Aspetta che Flatpickr e i suoi plugin siano completamente caricati
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     await loadDataFromFile();
     
     // Mostra i controlli di navigazione
@@ -672,25 +675,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentMonth = getCurrentMonth();
     displayMonth(currentMonth);
     
-    // Inizializza Flatpickr per il selettore del mese
-    const monthPicker = flatpickr("#monthSelect", {
-        locale: 'it',
-        dateFormat: "Y-m",
-        defaultDate: currentMonth,
-        plugins: [
-            new monthSelectPlugin({
-                shorthand: false,
-                dateFormat: "Y-m",
-                altFormat: "F Y",
-                theme: "light"
-            })
-        ],
-        static: true,
-        onChange: function(selectedDates, dateStr) {
-            currentMonth = dateStr;
+    // Inizializza il selettore del mese
+    const monthPickerElement = document.querySelector("#monthSelect");
+    if (monthPickerElement) {
+        // Imposta il valore iniziale
+        monthPickerElement.value = currentMonth;
+        
+        // Aggiungi l'event listener per il cambio mese
+        monthPickerElement.addEventListener('change', (e) => {
+            currentMonth = e.target.value;
             displayMonth(currentMonth);
-        }
-    });
+        });
+    }
     
     // Aggiungi event listener per i pulsanti di navigazione
     document.getElementById('prevMonth').addEventListener('click', () => {
@@ -704,7 +700,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
-        monthPicker.setDate(currentMonth);  // Aggiorna anche il calendario
+        monthPickerElement.value = currentMonth;  // Aggiorna anche il calendario
         displayMonth(currentMonth);
     });
     
@@ -719,7 +715,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
-        monthPicker.setDate(currentMonth);  // Aggiorna anche il calendario
+        monthPickerElement.value = currentMonth;  // Aggiorna anche il calendario
         displayMonth(currentMonth);
     });
 

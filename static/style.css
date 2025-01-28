@@ -231,40 +231,89 @@ input[list]::-webkit-calendar-picker-indicator {
 
 .navigation-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin: 0 0 20px 0;
-    padding: 10px;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 20px auto;
+    padding: 10px 20px;
+    max-width: 600px;
     background-color: var(--card-background);
-    box-shadow: var(--box-shadow);
     border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.month-selector {
+    flex: 0 1 200px;
+    margin: 0;
 }
 
 .nav-button {
-    padding: 8px 16px;
-    border: none;
-    border-radius: var(--border-radius);
-    background-color: var(--nav-button-color);
-    color: white;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
-    display: flex;
+    flex: 0 0 auto;
+    min-width: 140px;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    padding: 8px 16px;
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    background-color: transparent;
+    color: var(--primary-color);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Stile specifico per il pulsante precedente */
+.nav-button#prevMonth {
+    justify-content: flex-start;
+}
+
+/* Stile specifico per il pulsante successivo */
+.nav-button#nextMonth {
+    justify-content: flex-end;
 }
 
 .nav-button .arrow {
     font-size: 1.2em;
+    line-height: 1;
 }
 
-.nav-button:hover:not(:disabled), .export-button:hover {
-    background-color: var(--nav-button-hover);
+.nav-button#prevMonth .arrow {
+    margin-right: 8px;
 }
 
-.nav-button:disabled {
-    background-color: var(--nav-button-disabled);
-    cursor: not-allowed;
+.nav-button#nextMonth .arrow {
+    margin-left: 8px;
+}
+
+@media (max-width: 768px) {
+    .navigation-controls {
+        padding: 10px;
+    }
+
+    .nav-button {
+        min-width: auto;
+        padding: 8px;
+    }
+
+    .nav-button .text {
+        display: none;
+    }
+
+    .nav-button .arrow {
+        margin: 0;
+    }
+
+    .nav-button#prevMonth .arrow,
+    .nav-button#nextMonth .arrow {
+        margin: 0;
+    }
+
+    .month-selector {
+        flex: 1;
+    }
 }
 
 .export-container {
@@ -992,151 +1041,118 @@ th:nth-child(2) {
     min-width: 200px;
 }
 
-.month-selector input.flatpickr {
-    padding: 8px 12px;
-    font-size: 1.1em;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: white;
-    cursor: pointer;
+.month-input {
     width: 100%;
-    text-align: center;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color);
+    font-size: 1em;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-color);
 }
 
-.month-selector input.flatpickr:hover {
-    border-color: #999;
+.month-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
 }
 
-.month-selector input.flatpickr:focus {
+.month-input:hover {
+    border-color: var(--primary-color);
+}
+
+.month-input:focus {
     outline: none;
-    border-color: #0066cc;
-    box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+@media (max-width: 768px) {
+    .month-selector {
+        flex: 1;
+        margin: 0 8px;
+    }
+
+    .month-input {
+        padding: 8px;
+        font-size: 0.9em;
+    }
 }
 
 .flatpickr-calendar {
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    border-radius: 8px;
-}
-
-.flatpickr-calendar.arrowTop:before {
-    border-bottom-color: #ddd;
-}
-
-.flatpickr-calendar.arrowTop:after {
-    border-bottom-color: #fff;
-}
-
-.flatpickr-current-month {
-    font-size: 1.1em;
-    padding: 8px 0;
-}
-
-.flatpickr-day.selected {
-    background: #0066cc;
-    border-color: #0066cc;
-}
-
-.flatpickr-day:hover {
-    background: #e6f0fa;
-}
-
-.flatpickr-monthSelect-months {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 15px;
-    background: #fff;
-    border-radius: 0 0 4px 4px;
-}
-
-.flatpickr-monthSelect-month {
-    flex: 0 0 33.33%;
-    padding: 12px 8px;
-    text-align: center;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    color: #333;
-    transition: all 0.2s ease;
-}
-
-.flatpickr-monthSelect-month:hover {
-    background: #e6f0fa;
-    color: #0066cc;
-}
-
-.flatpickr-monthSelect-month.selected {
-    background: #0066cc;
-    color: white;
-    font-weight: 500;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    border: 1px solid var(--border-color);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 8px;
+    margin-top: 8px;
 }
 
 .flatpickr-months {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 15px;
-    background: #f8f9fa;
-    border-bottom: 1px solid #eee;
-    border-radius: 4px 4px 0 0;
+    margin-bottom: 10px;
+    padding: 0 10px;
 }
 
-.flatpickr-months .flatpickr-prev-month,
-.flatpickr-months .flatpickr-next-month {
-    padding: 5px;
-    fill: #666;
-    transition: fill 0.2s ease;
+.flatpickr-prev-month, .flatpickr-next-month {
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
 }
 
-.flatpickr-months .flatpickr-prev-month:hover,
-.flatpickr-months .flatpickr-next-month:hover {
-    fill: #0066cc;
+.flatpickr-prev-month:hover, .flatpickr-next-month:hover {
+    background-color: rgba(74, 144, 226, 0.1);
 }
 
 .flatpickr-current-month {
-    font-size: 1.1em;
-    font-weight: 500;
-    color: #333;
-}
-
-.flatpickr-current-month .cur-month {
-    font-weight: 500;
-}
-
-.flatpickr-current-month .cur-year {
-    font-weight: 500;
-    color: #666;
-    margin-left: 4px;
-}
-
-.flatpickr-calendar.monthSelect {
-    border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border: 1px solid #eee;
-    padding: 0;
-    width: 280px;
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--text-color);
 }
 
 .flatpickr-monthSelect-month {
+    padding: 8px 12px;
+    margin: 2px;
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease;
+}
+
+.flatpickr-monthSelect-month:hover {
+    background-color: rgba(74, 144, 226, 0.1);
+}
+
+.flatpickr-monthSelect-month.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.month-selector {
     position: relative;
-    overflow: hidden;
+    flex: 1;
+    max-width: 200px;
+    margin: 0 15px;
 }
 
-.flatpickr-monthSelect-month:after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(0,102,204,0.1);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s ease, height 0.3s ease;
-}
-
-.flatpickr-monthSelect-month:hover:after {
+.month-selector input {
     width: 100%;
-    height: 100%;
-    border-radius: 4px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color);
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.month-selector input:hover {
+    border-color: var(--primary-color);
+}
+
+.month-selector input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
