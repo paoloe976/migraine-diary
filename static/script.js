@@ -684,9 +684,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupExportPdf();
     setupFileInput();
     setupDropdownMenu();
-    
-    // Aggiungi l'event listener per l'esportazione CSV
-    document.getElementById('exportCsv').addEventListener('click', exportToCsv);
 });
 
 // Aggiungi event listener per il pulsante di esportazione
@@ -697,24 +694,10 @@ function setupExportPdf() {
 // Gestione del caricamento della cartella
 function setupFileInput() {
     const fileInput = document.getElementById('fileInput');
-    const importButton = document.getElementById('importButton');
-    
-    importButton.addEventListener('click', () => {
-        fileInput.click();
-    });
-
     fileInput.addEventListener('change', async (event) => {
-        const files = event.target.files;
-        if (files) {
-            // Filtra solo i file CSV
-            const csvFiles = Array.from(files).filter(file => file.name.endsWith('.csv'));
-            if (csvFiles.length > 0) {
-                await loadAllFiles(csvFiles);
-            } else {
-                console.log('Nessun file CSV selezionato');
-            }
-            // Reset il valore dell'input per permettere di selezionare gli stessi file
-            event.target.value = '';
+        if (event.target.files.length > 0) {
+            await loadAllFiles(event.target.files);
+            displayMonth(getCurrentMonth());
         }
     });
 }
@@ -740,18 +723,18 @@ function setupDropdownMenu() {
         dropdownMenu.classList.toggle('show');
     });
 
-    // Gestione del pulsante di importazione
+    // Gestione dei click sui pulsanti del menu (solo per chiudere il menu)
     importButton.addEventListener('click', () => {
         fileInput.click();
         dropdownMenu.classList.remove('show');
     });
 
-    // Chiudi il menu dopo aver cliccato su un'opzione
     exportPdfButton.addEventListener('click', () => {
         dropdownMenu.classList.remove('show');
     });
 
     exportCsvButton.addEventListener('click', () => {
+        exportToCsv();
         dropdownMenu.classList.remove('show');
     });
 }
