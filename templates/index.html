@@ -10,7 +10,28 @@
 </head>
 <body>
     <div class="container">
-        <h1>Diario delle Cefalee</h1>
+        <div class="header">
+            <div class="title-bar">
+                <h1>Diario delle Cefalee</h1>
+                <div class="menu-dropdown">
+                    <button id="menuButton" class="menu-trigger">⋮</button>
+                    <div id="dropdownMenu" class="dropdown-content">
+                        <button id="exportPdf" class="dropdown-item">
+                            <i class="fas fa-file-pdf"></i> Crea PDF del mese corrente
+                        </button>
+                        <div class="file-input-container">
+                            <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                            <button id="importButton" class="dropdown-item">
+                                <i class="fas fa-file-import"></i> Importa CSV
+                            </button>
+                        </div>
+                        <button id="exportCsv" class="dropdown-item">
+                            <i class="fas fa-file-csv"></i> Esporta CSV
+                        </button>                        
+                    </div>
+                </div>
+            </div>
+        </div>
         
         <div class="navigation-controls" style="display: none;">
             <button class="nav-button" id="prevMonth">
@@ -66,21 +87,6 @@
                 </td>
             </tr>
         </template>
-
-        <div class="controls">
-            <button id="exportPdf" class="control-button">
-                <i class="fas fa-file-pdf"></i> Esporta PDF
-            </button>
-            <button id="exportCsv" class="control-button">
-                <i class="fas fa-file-csv"></i> Esporta CSV
-            </button>
-            <div class="file-input-container">
-                <input type="file" id="fileInput" accept=".csv" style="display: none;">
-                <button id="importButton" class="control-button">
-                    <i class="fas fa-file-import"></i> Importa CSV
-                </button>
-            </div>
-        </div>
 
         <script src="/static/script.js"></script>
     </div>

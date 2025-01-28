@@ -18,6 +18,13 @@ function convertToISODate(italianDate) {
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
 }
 
+// Funzione per verificare se una data è in formato ISO (YYYY-MM-DD)
+function isISODate(dateStr) {
+    // Rimuovi le virgolette se presenti
+    const cleanDate = dateStr.replace(/^"|"$/g, '');
+    return cleanDate && cleanDate.match(/^\d{4}-\d{2}-\d{2}$/);
+}
+
 // Mappa per la normalizzazione della sede
 const locationMap = {
     'o': 'Occipitale',
@@ -100,10 +107,17 @@ async function loadAllFiles(files) {
                     const [date, intensity, location, medication, notes] = line.split(',');
                     console.log(`Linea ${index}:`, { date, intensity, location, medication, notes });
                     
-                    // Verifica se la data è nel formato italiano (DD/MM/YYYY)
-                    if (date && date.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-                        const isoDate = convertToISODate(date);
-                        console.log(`Data convertita da ${date} a ${isoDate}`);
+                    // Rimuovi le virgolette dai campi
+                    const cleanDate = date.replace(/^"|"$/g, '');
+                    const cleanIntensity = intensity ? intensity.replace(/^"|"$/g, '') : '';
+                    const cleanLocation = location ? location.replace(/^"|"$/g, '') : '';
+                    const cleanMedication = medication ? medication.replace(/^"|"$/g, '') : '';
+                    const cleanNotes = notes ? notes.replace(/^"|"$/g, '') : '';
+
+                    // Verifica se la data è nel formato italiano (DD/MM/YYYY) o ISO (YYYY-MM-DD)
+                    if (cleanDate && (cleanDate.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/) || cleanDate.match(/^\d{4}-\d{2}-\d{2}$/))) {
+                        const isoDate = isISODate(cleanDate) ? cleanDate : convertToISODate(cleanDate);
+                        console.log(`Data processata: ${cleanDate} -> ${isoDate}`);
                         const parsedDate = parseDate(isoDate);
                         const monthKey = getMonthKey(parsedDate);
                         console.log(`Data valida trovata: ${isoDate}, chiave mese: ${monthKey}`);
@@ -114,13 +128,13 @@ async function loadAllFiles(files) {
                         
                         fileEntries.get(monthKey).set(isoDate, {
                             date: isoDate,
-                            intensity: intensity ? intensity.trim() : '',
-                            location: normalizeLocation(location ? location.trim() : ''),
-                            medication: medication ? medication.trim() : '',
-                            notes: notes ? notes.trim() : ''
+                            intensity: cleanIntensity.trim(),
+                            location: normalizeLocation(cleanLocation.trim()),
+                            medication: cleanMedication.trim(),
+                            notes: cleanNotes.trim()
                         });
                     } else {
-                        console.log(`Data non valida o in formato non riconosciuto: ${date}`);
+                        console.log(`Data non valida o in formato non riconosciuto: ${cleanDate}`);
                     }
                 }
             });
@@ -670,6 +684,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupMonthNavigation();
     setupExportPdf();
     setupFileInput();
+    setupDropdownMenu();
     
     // Aggiungi l'event listener per l'esportazione CSV
     document.getElementById('exportCsv').addEventListener('click', exportToCsv);
@@ -701,6 +716,25 @@ function setupFileInput() {
             }
             // Reset il valore dell'input per permettere di selezionare gli stessi file
             event.target.value = '';
+        }
+    });
+}
+
+// Gestione del menu a tendina
+function setupDropdownMenu() {
+    const menuButton = document.getElementById('menuButton');
+    const dropdownMenu = document.getElementById('dropdownMenu');
+
+    // Apre/chiude il menu al click del pulsante
+    menuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+
+    // Chiude il menu quando si clicca fuori
+    document.addEventListener('click', (e) => {
+        if (!dropdownMenu.contains(e.target) && !menuButton.contains(e.target)) {
+            dropdownMenu.classList.remove('show');
         }
     });
 }
