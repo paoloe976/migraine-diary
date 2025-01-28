@@ -621,6 +621,10 @@ tbody tr.current-day:nth-child(even):hover td {
         font-size: 16px; /* Previene lo zoom automatico su iOS */
     }
 
+    td:has(input[name="notes"]:focus) {
+        width: 100%;
+    }
+
 }
 
 td.action-buttons {
