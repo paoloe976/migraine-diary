@@ -74,12 +74,29 @@ def load_data():
         
         if not files:
             # Il file non esiste, crealo
-            file_metadata = {'name': 'headache_data.json'}
+            file_metadata = {
+                'name': 'headache_data.json',
+                'parents': ['root']  # Lo mette nella root del Drive
+            }
             file_content = json.dumps({})
             fh = io.BytesIO(file_content.encode('utf-8'))
             media = MediaIoBaseUpload(fh, mimetype='application/json', resumable=True)
-            file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+            file = service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id'
+            ).execute()
             FILE_ID = file.get('id')
+            
+            # Rendi il file visibile nel Drive
+            service.permissions().create(
+                fileId=FILE_ID,
+                body={
+                    'type': 'user',
+                    'role': 'writer',
+                    'emailAddress': os.environ.get('GOOGLE_USER_EMAIL', 'your.email@gmail.com')  # Sostituisci con la tua email
+                }
+            ).execute()
         else:
             FILE_ID = files[0]['id']
     
@@ -126,6 +143,45 @@ def save_data_route():
         data = request.get_json()
         save_data(data)
         return jsonify({'message': 'Data saved successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/debug_file', methods=['GET'])
+def debug_file():
+    try:
+        service = get_google_drive_service()
+        
+        # Cerca tutti i file con quel nome
+        results = service.files().list(
+            q="name='headache_data.json'",
+            spaces='drive',
+            fields='files(id, name, owners, permissions, webViewLink)'
+        ).execute()
+        
+        files = results.get('files', [])
+        
+        if not files:
+            return jsonify({'message': 'Nessun file trovato'})
+            
+        file_info = []
+        for file in files:
+            # Ottieni più dettagli sul file
+            file_details = service.files().get(
+                fileId=file['id'],
+                fields='id, name, owners, permissions, webViewLink, parents'
+            ).execute()
+            
+            file_info.append({
+                'id': file_details.get('id'),
+                'name': file_details.get('name'),
+                'owners': file_details.get('owners'),
+                'permissions': file_details.get('permissions'),
+                'webViewLink': file_details.get('webViewLink'),
+                'parents': file_details.get('parents')
+            })
+        
+        return jsonify(file_info)
+        
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
