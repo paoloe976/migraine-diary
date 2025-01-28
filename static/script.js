@@ -231,7 +231,7 @@ function displayMonth(monthKey) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th>Data</th>
+                <th>Giorno</th>
                 <th>Giorno</th>
                 <th>Intensità</th>
                 <th>Sede</th>
@@ -280,7 +280,7 @@ function displayMonth(monthKey) {
         if (dayOfWeek === 1) row.classList.add('start-of-week');
 
         row.innerHTML = `
-            <td>${formatDateFromDate(dateObj)}</td>
+            <td>${day}</td>
             <td>${getDayName(dateObj)}</td>
             <td>${createIntensityBar(entry.intensity)}</td>
             <td>${entry.location || ''}</td>
@@ -781,7 +781,7 @@ function createMedicationInput(value) {
 
 // Funzione per creare l'input delle note
 function createNotesInput(value) {
-    return `<input type="text" class="edit-input notes-input" value="${value || ''}" style="width: 100%;">`;
+    return `<input type="text" class="edit-input" name="notes" value="${value || ''}">`;
 }
 
 // Funzione per salvare una riga
@@ -795,7 +795,7 @@ function saveRow(row) {
     const intensity = row.querySelector('select[name="intensity"]').value;
     const location = row.querySelector('select[name="location"]').value;
     const medication = row.querySelector('input[name="medication"]').value;
-    const notes = row.querySelector('input.notes-input').value;
+    const notes = row.querySelector('input[name="notes"]').value;
 
     // Se almeno un campo è compilato, salva la riga
     if (intensity || location || medication || notes) {
@@ -837,7 +837,7 @@ function clearValues(row) {
     const intensitySelect = row.querySelector('select[name="intensity"]');
     const locationSelect = row.querySelector('select[name="location"]');
     const medicationInput = row.querySelector('input[name="medication"]');
-    const notesInput = row.querySelector('input.notes-input');
+    const notesInput = row.querySelector('input[name="notes"]');
 
     if (intensitySelect) intensitySelect.value = '';
     if (locationSelect) locationSelect.value = '';
@@ -929,15 +929,17 @@ function createDataTable(entries) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th>Data</th>
+                <th>G</th>
                 <th>Giorno</th>
                 <th>Intensità</th>
                 <th>Sede</th>
                 <th>Farmaco</th>
                 <th>Note</th>
+                <th></th>
             </tr>
         </thead>
-        <tbody></tbody>
+        <tbody>
+        </tbody>
     `;
 
     const tbody = table.querySelector('tbody');
@@ -949,95 +951,51 @@ function createDataTable(entries) {
         
         // Crea l'oggetto Date direttamente dalla data ISO
         const date = new Date(entry.date + 'T00:00:00');
-        console.log(`Data: ${entry.date}`);
-        console.log(`Date object: ${date}`);
-        console.log(`Day of week: ${date.getDay()} (0=DOM, 1=LUN, ...)`);
         
         // Aggiungi le classi per la separazione delle settimane
         if (date.getDay() === 0) { // Domenica
-            console.log(`${entry.date} è DOMENICA`);
             row.classList.add('end-of-week');
         }
         if (date.getDay() === 1) { // Lunedì
-            console.log(`${entry.date} è LUNEDI`);
             row.classList.add('start-of-week');
         }
 
-        // Formatta la data per la visualizzazione
-        const formattedDate = formatDateFromDate(date);
+        // Ottieni solo il giorno e il nome del giorno
+        const dayNum = getDayFromISODate(entry.date);
         const dayName = getDayName(date);
 
         row.innerHTML = `
-            <td>${formattedDate}</td>
+            <td>${dayNum}</td>
             <td>${dayName}</td>
             <td>${createIntensityBar(entry.intensity)}</td>
             <td>${entry.location || ''}</td>
             <td>${entry.medication || ''}</td>
             <td>${entry.notes || ''}</td>
+            <td class="action-buttons">
+                <button class="edit-btn" title="Modifica">✎</button>
+            </td>
         `;
 
+        // Aggiungi la classe per le righe alternate
+        if (isStripedDay(date.getFullYear(), date.getMonth(), dayNum)) {
+            row.classList.add('striped');
+        }
+
         tbody.appendChild(row);
+        
+        // Aggiungi l'event listener per il pulsante di modifica
+        const editBtn = row.querySelector('.edit-btn');
+        editBtn.addEventListener('click', () => makeRowEditable(row));
+        
         prevDate = date;
     });
 
     return table;
 }
 
-// Funzione per rendere una riga editabile
-function makeRowEditable(row) {
-    if (row.classList.contains('editing')) return;
-    
-    // Se c'è già una riga in modifica, annulla quella modifica
-    finishCurrentEdit();
-    
-    const date = row.getAttribute('data-date');
-    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
-    const cells = Array.from(row.cells);
-    const data = monthsData.get(monthKey) || [];
-    const entry = data.find(e => e.date === date) || { 
-        date,
-        intensity: '',
-        location: '',
-        medication: '',
-        notes: ''
-    };
-
-    // Aggiungi la classe editing alla riga
-    row.classList.add('editing');
-
-    // Salva il contenuto originale delle celle
-    row.setAttribute('data-original', JSON.stringify(entry));
-
-    // Crea gli input per ogni cella editabile
-    cells[2].innerHTML = createIntensityInput(entry.intensity === undefined ? '' : entry.intensity);
-    cells[3].innerHTML = createLocationInput(entry.location === undefined ? '' : entry.location);
-    cells[4].innerHTML = createMedicationInput(entry.medication === undefined ? '' : entry.medication);
-    cells[5].innerHTML = `
-        <div class="edit-container">
-            <input type="text" class="edit-input notes-input" value="${entry.notes === undefined ? '' : entry.notes}" style="width: 100%;">
-            <div class="edit-buttons">
-                <button class="save-btn" title="Salva">✓</button>
-                <button class="clear-btn" title="Svuota campi">⌫</button>
-            </div>
-        </div>
-    `;
-
-    // Aggiungi gli event listener per i pulsanti
-    const saveBtn = cells[5].querySelector('.save-btn');
-    const clearBtn = cells[5].querySelector('.clear-btn');
-    
-    saveBtn.addEventListener('click', () => saveRow(row));
-    clearBtn.addEventListener('click', () => clearValues(row));
-
-    // Imposta l'autocompletamento per il farmaco
-    const medicationInput = cells[4].querySelector('input[name="medication"]');
-    if (medicationInput) {
-        setupMedicationAutocomplete(medicationInput);
-    }
-
-    // Focus sul primo input
-    const firstInput = row.querySelector('input, select');
-    if (firstInput) firstInput.focus();
+// Funzione per ottenere solo il giorno da una data ISO
+function getDayFromISODate(isoDate) {
+    return new Date(isoDate).getDate();
 }
 
 // Funzione per salvare o annullare la modifica della riga corrente
@@ -1073,4 +1031,65 @@ function setupMonthNavigation() {
             displayMonth(currentMonth);
         }
     });
+}
+
+// Funzione per rendere una riga editabile
+function makeRowEditable(row) {
+    if (row.classList.contains('editing')) return;
+    
+    // Se c'è già una riga in modifica, annulla quella modifica
+    finishCurrentEdit();
+    
+    const date = row.getAttribute('data-date');
+    const monthKey = date.substring(0, 7); // Prende YYYY-MM dalla data YYYY-MM-DD
+    const cells = Array.from(row.cells);
+    const data = monthsData.get(monthKey) || [];
+    const entry = data.find(e => e.date === date) || { 
+        date,
+        intensity: '',
+        location: '',
+        medication: '',
+        notes: ''
+    };
+
+    // Aggiungi la classe editing alla riga
+    row.classList.add('editing');
+
+    // Salva il contenuto originale delle celle
+    row.setAttribute('data-original', JSON.stringify(entry));
+
+    // Crea gli input per ogni cella editabile
+    cells[2].innerHTML = createIntensityInput(entry.intensity === undefined ? '' : entry.intensity);
+    cells[3].innerHTML = createLocationInput(entry.location === undefined ? '' : entry.location);
+    cells[4].innerHTML = createMedicationInput(entry.medication === undefined ? '' : entry.medication);
+    cells[5].innerHTML = createNotesInput(entry.notes === undefined ? '' : entry.notes);
+    
+    // Aggiungi i pulsanti dopo l'ultima cella
+    const lastCell = cells[cells.length - 1];
+    lastCell.insertAdjacentHTML('beforeend', `
+        <div class="action-buttons-container">
+            <button class="save-btn" title="Salva">✓</button>
+            <button class="clear-btn" title="⌫">⌫</button>
+            <button class="cancel-btn" title="Annulla">✕</button>
+        </div>
+    `);
+
+    // Aggiungi gli event listener per i pulsanti
+    const saveBtn = lastCell.querySelector('.save-btn');
+    const clearBtn = lastCell.querySelector('.clear-btn');
+    const cancelBtn = lastCell.querySelector('.cancel-btn');
+    
+    saveBtn.addEventListener('click', () => saveRow(row));
+    clearBtn.addEventListener('click', () => clearValues(row));
+    cancelBtn.addEventListener('click', () => cancelEdit(row));
+
+    // Imposta l'autocompletamento per il farmaco
+    const medicationInput = cells[4].querySelector('input[name="medication"]');
+    if (medicationInput) {
+        setupMedicationAutocomplete(medicationInput);
+    }
+
+    // Focus sul primo input
+    const firstInput = row.querySelector('input, select');
+    if (firstInput) firstInput.focus();
 }

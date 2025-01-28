@@ -505,17 +505,98 @@ tbody tr.current-day:nth-child(even):hover td {
     background-color: #da190b;
 }
 
-/* Stili per la riga in modifica */
-.editing {
-    background-color: #e3f2fd !important;
-}
-
 .editing td {
-    background-color: #e3f2fd !important;
+    padding: 4px;
+    position: relative;
+    background-color: #e3f2fd;
 }
 
-.editing .intensity-bar {
-    display: none;
+.editing .edit-input {
+    width: 100%;
+    padding: 4px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.action-buttons-container {
+    position: absolute;
+    right: -4px;
+    top: calc(100% - 4px);
+    display: inline-flex;
+    gap: 4px;
+    background: white;
+    padding: 6px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    border: 1px solid #e0e0e0;
+}
+
+.action-buttons-container::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    transform: rotate(45deg);
+    border-left: 1px solid #e0e0e0;
+    border-top: 1px solid #e0e0e0;
+}
+
+.action-buttons-container button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s, opacity 0.1s;
+}
+
+.action-buttons-container button:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+.save-btn {
+    background-color: #4caf50;
+}
+
+.clear-btn {
+    background-color: #ff9800;
+}
+
+.cancel-btn {
+    background-color: #f44336;
+}
+
+@media (max-width: 768px) {
+    .action-buttons-container {
+        padding: 4px;
+        gap: 3px;
+    }
+
+    .action-buttons-container button {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+}
+
+td.action-buttons {
+    width: 60px;
+    min-width: 60px;
+    padding: 4px;
+    position: relative;
 }
 
 .controls {
@@ -650,6 +731,7 @@ tbody tr.current-day:nth-child(even):hover td {
     cursor: pointer;
     text-align: left;
     font-size: 14px;
+    box-sizing: border-box;
 }
 
 .dropdown-item:hover {
@@ -662,60 +744,98 @@ tbody tr.current-day:nth-child(even):hover td {
     text-align: center;
 }
 
+/* Stili per la colonna del giorno */
+td:first-child,
+th:first-child {
+    width: 25px;
+    text-align: center;
+    padding: 8px 4px;
+    font-weight: bold;
+}
+
+td:nth-child(2),
+th:nth-child(2) {
+    width: 40px;
+    text-align: center;
+    padding: 8px 4px;
+}
+
 @media (max-width: 768px) {
     body {
-        padding: 0;
-        margin: 0;
+        padding: 10px;
     }
 
     .container {
-        padding: 0;
-        margin: 0;
-        width: 100%;
-    }
-
-    .table-wrapper {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        margin: 0;
-        background: var(--card-background);
-    }
-
-    table {
-        margin: 0;
-        border-radius: 0;
-        min-width: 100%;
-        width: max-content;
+        padding: 10px;
     }
 
     h1 {
-        margin: 0;
-        padding: 15px;
+        font-size: 1.8em;
+        margin-bottom: 20px;
     }
 
-    .navigation-controls {
-        margin: 0;
-        padding: 12px;
-        border-radius: 0;
-        background: var(--card-background);
-        box-shadow: var(--box-shadow);
+    /* Tabella responsive */
+    table {
+        font-size: 14px;
     }
 
-    .stats {
-        margin: 0;
-        padding: 12px;
-        border-radius: 0;
-        background: var(--card-background);
-        box-shadow: var(--box-shadow);
+    th, td {
+        padding: 8px 4px;
     }
 
-    .upload-button {
-        display: block;
-        margin: 15px;
+    /* Nascondi il testo "Note" nell'header e mostra solo su hover */
+    th:last-child {
+        width: 40px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
+    /* Riduci la larghezza delle colonne non essenziali */
+    th:nth-child(2), /* Giorno della settimana */
+    td:nth-child(2) {
+        width: 35px;
+        white-space: nowrap;
+    }
+
+    /* Riduci ulteriormente la colonna del giorno su mobile */
+    td:first-child,
+    th:first-child {
+        width: 20px;
+        padding: 8px 2px;
+        font-size: 0.9em;
+    }
+
+    /* Riduci la larghezza della colonna del giorno della settimana */
+    td:nth-child(2),
+    th:nth-child(2) {
+        width: 30px;
+        padding: 8px 2px;
+        font-size: 0.9em;
+    }
+
+    /* Altre regole responsive esistenti... */
+    /* Gestisci il testo lungo */
+    td {
+        max-width: 80px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Mostra il testo completo al tap/hover */
+    td:hover {
+        white-space: normal;
+        overflow: visible;
+        position: relative;
+        background-color: var(--card-background);
+        z-index: 1;
+    }
+
+    /* Riduci la dimensione dei pulsanti di navigazione */
     .nav-button {
-        padding: 8px;
+        padding: 6px 10px;
+        font-size: 14px;
     }
 
     .nav-button .text {
@@ -723,16 +843,36 @@ tbody tr.current-day:nth-child(even):hover td {
     }
 
     .nav-button .arrow {
-        font-size: 24px;
+        margin: 0;
+    }
+
+    #currentMonth {
+        font-size: 16px;
+        margin: 0 10px;
+    }
+
+    /* Migliora la visualizzazione delle barre di intensità */
+    .intensity-bar {
+        width: 30px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Ulteriori ottimizzazioni per schermi molto piccoli */
+    table {
+        font-size: 13px;
     }
 
     th, td {
-        padding: 8px 4px;
-        font-size: 14px;
+        padding: 6px 3px;
     }
 
-    .edit-input {
-        width: 100%;
-        min-width: 60px;
+    .container {
+        padding: 5px;
+    }
+
+    h1 {
+        font-size: 1.5em;
     }
 }
