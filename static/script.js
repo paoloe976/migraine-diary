@@ -357,18 +357,33 @@ function isStripedDay(year, month, day) {
 
 // Funzione per aggiornare i controlli di navigazione
 function updateNavigationControls() {
-    const months = Array.from(monthsData.keys());
-    const currentIndex = months.indexOf(currentMonth);
-    
     const prevButton = document.getElementById('prevMonth');
     const nextButton = document.getElementById('nextMonth');
-
-    prevButton.disabled = currentIndex <= 0;
-    nextButton.disabled = currentIndex >= months.length - 1;
     
-    // Mostra/nascondi i controlli di navigazione
-    const navigationControls = document.querySelector('.navigation-controls');
-    navigationControls.style.display = months.length > 0 ? 'flex' : 'none';
+    // Rimuovi eventuali limitazioni precedenti
+    prevButton.disabled = false;
+    nextButton.disabled = false;
+    
+    // Ottieni la data corrente
+    const today = new Date();
+    const currentDate = new Date(currentMonth + '-01');
+    
+    // Aggiorna lo stato dei pulsanti in base alla presenza di dati
+    if (monthsData.size > 0) {
+        const months = Array.from(monthsData.keys()).sort();
+        const firstMonth = months[0];
+        const lastMonth = months[months.length - 1];
+        
+        // Disabilita il pulsante "precedente" se siamo al primo mese con dati
+        if (currentMonth <= firstMonth) {
+            prevButton.disabled = true;
+        }
+        
+        // Disabilita il pulsante "successivo" se siamo al mese corrente
+        if (currentMonth >= lastMonth) {
+            nextButton.disabled = true;
+        }
+    }
 }
 
 // Funzione per formattare il nome del mese
@@ -663,17 +678,10 @@ async function saveAllData() {
 
 // All'avvio, carica i dati e mostra il mese corrente
 document.addEventListener('DOMContentLoaded', async () => {
-    // Aspetta che Flatpickr e i suoi plugin siano completamente caricati
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     await loadDataFromFile();
-    
-    // Mostra i controlli di navigazione
-    document.querySelector('.navigation-controls').style.display = 'flex';
     
     // Imposta il mese corrente
     currentMonth = getCurrentMonth();
-    displayMonth(currentMonth);
     
     // Inizializza il selettore del mese
     const monthPickerElement = document.querySelector("#monthSelect");
@@ -682,43 +690,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         monthPickerElement.value = currentMonth;
         
         // Aggiungi l'event listener per il cambio mese
-        monthPickerElement.addEventListener('change', (e) => {
-            currentMonth = e.target.value;
-            displayMonth(currentMonth);
+        monthPickerElement.addEventListener('input', (e) => {
+            const newMonth = e.target.value;
+            if (newMonth && newMonth !== currentMonth) {
+                currentMonth = newMonth;
+                displayMonth(currentMonth);
+                updateNavigationControls();
+            }
         });
     }
+
+    // Mostra i controlli di navigazione e il mese iniziale
+    document.querySelector('.navigation-controls').style.display = 'flex';
+    displayMonth(currentMonth);
+    updateNavigationControls();
     
     // Aggiungi event listener per i pulsanti di navigazione
     document.getElementById('prevMonth').addEventListener('click', () => {
-        const [year, month] = currentMonth.split('-');
-        let newMonth = parseInt(month) - 1;
-        let newYear = parseInt(year);
-        
-        if (newMonth < 1) {
-            newMonth = 12;
-            newYear--;
-        }
-        
-        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
-        monthPickerElement.value = currentMonth;  // Aggiorna anche il calendario
+        const date = new Date(currentMonth + '-01');
+        date.setMonth(date.getMonth() - 1);
+        currentMonth = date.toISOString().substring(0, 7);
+        monthPickerElement.value = currentMonth;
         displayMonth(currentMonth);
+        updateNavigationControls();
     });
     
     document.getElementById('nextMonth').addEventListener('click', () => {
-        const [year, month] = currentMonth.split('-');
-        let newMonth = parseInt(month) + 1;
-        let newYear = parseInt(year);
-        
-        if (newMonth > 12) {
-            newMonth = 1;
-            newYear++;
-        }
-        
-        currentMonth = `${newYear}-${String(newMonth).padStart(2, '0')}`;
-        monthPickerElement.value = currentMonth;  // Aggiorna anche il calendario
+        const date = new Date(currentMonth + '-01');
+        date.setMonth(date.getMonth() + 1);
+        currentMonth = date.toISOString().substring(0, 7);
+        monthPickerElement.value = currentMonth;
         displayMonth(currentMonth);
+        updateNavigationControls();
     });
-
+    
     // Setup delle altre funzionalità
     setupExportPdf();
     setupFileInput();

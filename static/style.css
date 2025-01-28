@@ -265,6 +265,23 @@ input[list]::-webkit-calendar-picker-indicator {
     white-space: nowrap;
 }
 
+.nav-button:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.nav-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: var(--border-color);
+    color: var(--text-color);
+    background-color: var(--background-color);
+}
+
+.nav-button:disabled .arrow {
+    opacity: 0.5;
+}
+
 /* Stile specifico per il pulsante precedente */
 .nav-button#prevMonth {
     justify-content: flex-start;
