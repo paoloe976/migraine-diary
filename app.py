@@ -18,6 +18,18 @@ CORS(app)
 if not os.environ.get('RENDER'):  # Se non siamo su Render.com
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
+def get_credentials_path():
+    if os.environ.get('GOOGLE_CREDENTIALS'):
+        # Su Render.com, crea il file dalle variabili d'ambiente
+        credentials = os.environ['GOOGLE_CREDENTIALS']
+        credentials_path = 'credentials.json'
+        with open(credentials_path, 'w') as f:
+            f.write(credentials)
+        return credentials_path
+    else:
+        # In locale, usa il file
+        return 'credentials.json'
+
 SCOPES = [
     'openid',
     'https://www.googleapis.com/auth/drive.file',
@@ -39,7 +51,7 @@ def login_required(f):
 @app.route('/login')
 def login():
     if 'credentials' not in session:
-        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+        flow = InstalledAppFlow.from_client_secrets_file(get_credentials_path(), SCOPES)
         flow.redirect_uri = url_for('oauth2callback', _external=True)
         authorization_url, state = flow.authorization_url(
             access_type='offline',
@@ -54,7 +66,7 @@ def login():
 def oauth2callback():
     try:
         # Crea un nuovo flow
-        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+        flow = InstalledAppFlow.from_client_secrets_file(get_credentials_path(), SCOPES)
         flow.redirect_uri = url_for('oauth2callback', _external=True)
         
         # Usa l'URL corrente per ottenere il token
