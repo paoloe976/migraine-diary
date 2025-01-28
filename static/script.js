@@ -232,7 +232,7 @@ function displayMonth(monthKey) {
         <thead>
             <tr>
                 <th colspan="2">Giorno</th>
-                <th>Intensità</th>
+                <th>Int.</th>
                 <th>Sede</th>
                 <th>Farmaco</th>
                 <th>Note</th>
@@ -944,7 +944,7 @@ function createDataTable(entries) {
         <thead>
             <tr>
                 <th colspan="2">Giorno</th>
-                <th>Intensità</th>
+                <th>Int.</th>
                 <th>Sede</th>
                 <th>Farmaco</th>
                 <th>Note</th>

@@ -606,6 +606,21 @@ tbody tr.current-day:nth-child(even):hover td {
     .cancel-btn {
         background-color: #D32F2F;  /* Rosso più scuro */
     }
+
+    /* Stile speciale per l'input delle note su mobile */
+    input[name="notes"] {
+        height: auto;
+        padding: 8px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        resize: vertical;
+        overflow-y: auto;
+        -webkit-appearance: none;
+        border-radius: 4px;
+        font-size: 16px; /* Previene lo zoom automatico su iOS */
+    }
+
 }
 
 td.action-buttons {
@@ -705,13 +720,15 @@ td.action-buttons {
 
 .dropdown-content {
     display: none;
-    position: absolute;
-    right: 0;
-    background-color: #fff;
-    min-width: 250px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    padding: 8px 0;
+    position: fixed;
+    top: auto;
+    right: 16px;
+    width: calc(100% - 32px);
+    max-width: 300px;
+    margin-top: 8px;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     z-index: 9999;
 }
 
@@ -764,6 +781,69 @@ td.action-buttons {
         width: 36px;
         height: 36px;
     }
+
+    /* Rimuovi padding dal container su mobile quando c'è una riga in editing */
+    .editing ~ * {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    #headacheData {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    #headacheData table {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border-spacing: 0 !important;
+    }
+
+    /* Input a tutta larghezza su mobile */
+    tr.editing input,
+    tr.editing select {
+        width: 100%;
+        padding: 8px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: #fff;
+        box-sizing: border-box;
+        margin: 2px 0;
+    }
+
+    /* Stile per i pulsanti azione */
+    .action-buttons-container {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .action-button {
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        background: #fff;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .save-btn {
+        background: #28a745;
+        color: white;
+    }
+
+    .clear-btn {
+        background: #6c757d;
+        color: white;
+    }
+
+    .cancel-btn {
+        background: #dc3545;
+        color: white;
+    }
+
     .dropdown-content {
         position: fixed;
         top: auto;
@@ -799,29 +879,13 @@ td.action-buttons {
     }
 }
 
-/* Stili per la colonna del giorno */
-td:first-child,
-th:first-child {
-    width: 25px;
-    text-align: center;
-    padding: 8px 4px;
-    font-weight: bold;
-}
-
-td:nth-child(2),
-th:nth-child(2) {
-    width: 40px;
-    text-align: center;
-    padding: 8px 4px;
-}
-
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
 
     .container {
-        padding: 10px;
+        padding: 0; /* Rimuovi il padding del container su mobile */
     }
 
     h1 {
@@ -940,4 +1004,20 @@ th:nth-child(2) {
     margin: 0 15px;
     min-width: 200px;
     text-align: center;
+}
+
+/* Stili per la colonna del giorno */
+td:first-child,
+th:first-child {
+    width: 25px;
+    text-align: center;
+    padding: 8px 4px;
+    font-weight: bold;
+}
+
+td:nth-child(2),
+th:nth-child(2) {
+    width: 40px;
+    text-align: center;
+    padding: 8px 4px;
 }
