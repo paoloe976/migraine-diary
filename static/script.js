@@ -1143,11 +1143,10 @@ function saveRow(row) {
     const monthData = monthsData.get(monthKey) || [];
     
     // Ottieni i valori dagli input
-    const cells = Array.from(row.cells);
-    const intensity = cells[2].querySelector('input')?.value || '';
-    const location = cells[3].querySelector('input')?.value.trim() || '';
-    const medication = cells[4].querySelector('input')?.value.trim() || '';
-    const notes = cells[5].querySelector('textarea')?.value.trim() || '';
+    const intensity = row.querySelector('select[name="intensity"]')?.value || '';
+    const location = row.querySelector('select[name="location"]')?.value || '';
+    const medication = row.querySelector('input[name="medication"]')?.value.trim() || '';
+    const notes = row.querySelector('input[name="notes"]')?.value.trim() || '';
     
     // Trova l'indice dell'entry esistente o -1 se non esiste
     const entryIndex = monthData.findIndex(e => e.date === date);
@@ -1162,7 +1161,7 @@ function saveRow(row) {
         const entry = {
             date,
             intensity,
-            location: normalizeLocation(location),
+            location,
             medication,
             notes
         };
@@ -1180,4 +1179,74 @@ function saveRow(row) {
     
     // Aggiorna la visualizzazione
     displayMonth(monthKey);
+}
+
+// Gestione dell'overlay per il campo note su mobile
+function setupNotesOverlay() {
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('input[name="notes"]')) {
+            // Crea l'overlay solo su mobile
+            if (window.innerWidth <= 768) {
+                const originalInput = e.target;
+                const row = originalInput.closest('tr');
+                
+                // Rimuovi overlay esistente se presente
+                const existingOverlay = document.querySelector('.notes-overlay');
+                if (existingOverlay) {
+                    existingOverlay.remove();
+                }
+
+                // Crea il nuovo overlay
+                const overlay = document.createElement('div');
+                overlay.className = 'notes-overlay';
+                
+                // Crea il textarea
+                const textarea = document.createElement('textarea');
+                textarea.className = 'notes-overlay-input';
+                textarea.value = originalInput.value;
+                
+                // Crea i pulsanti
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.className = 'notes-overlay-buttons';
+                
+                const saveButton = document.createElement('button');
+                saveButton.textContent = '✓';
+                saveButton.className = 'notes-overlay-save';
+                
+                const cancelButton = document.createElement('button');
+                cancelButton.textContent = '✕';
+                cancelButton.className = 'notes-overlay-cancel';
+                
+                buttonsContainer.appendChild(saveButton);
+                buttonsContainer.appendChild(cancelButton);
+                
+                // Aggiungi gli elementi all'overlay
+                overlay.appendChild(textarea);
+                overlay.appendChild(buttonsContainer);
+                document.body.appendChild(overlay);
+                
+                // Focus sul textarea
+                textarea.focus();
+                
+                // Gestisci il salvataggio
+                saveButton.addEventListener('click', function() {
+                    // Aggiorna il valore dell'input originale
+                    originalInput.value = textarea.value;
+                    
+                    // Simula il click sul pulsante di salvataggio della riga
+                    const saveBtn = row.querySelector('.save-btn');
+                    if (saveBtn) {
+                        saveBtn.click();
+                    }
+                    
+                    overlay.remove();
+                });
+                
+                // Gestisci la cancellazione
+                cancelButton.addEventListener('click', function() {
+                    overlay.remove();
+                });
+            }
+        }
+    });
 }
