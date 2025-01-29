@@ -1,111 +1,108 @@
-{% extends "base.html" %}
-
-{% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='midas.css') }}">
-{% endblock %}
-
-{% block content %}
-<div class="container mt-5">
-    <div class="card">
-        <div class="card-header">
-            <h2 class="text-center">Questionario MIDAS*</h2>
-        </div>
-        <div class="card-body">
-            <div class="mb-4">
-                <p class="text-muted">
-                    <strong>ISTRUZIONI:</strong> risponda, per favore, alle domande che seguono relativamente a TUTTI i mal di testa di cui ha sofferto
-                    negli ultimi 3 mesi. Scriva la sua risposta nella casella a fianco di ogni domanda. Scriva zero se non ha svolto nel corso
-                    degli ultimi tre mesi le attività indicate nelle domande.
-                </p>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionario MIDAS</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='midas.css') }}">
+    
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-center">Questionario MIDAS*</h2>
             </div>
-
-            <form id="midasForm" method="POST" action="{{ url_for('save_midas') }}">
+            <div class="card-body">
                 <div class="mb-4">
-                    <label for="nome" class="form-label">Cognome e Nome</label>
-                    <input type="text" class="form-control" id="nome" name="nome" required>
+                    <p class="text-muted">
+                        <strong>ISTRUZIONI:</strong> risponda, per favore, alle domande che seguono relativamente a TUTTI i mal di testa di cui ha sofferto
+                        negli ultimi 3 mesi. Scriva la sua risposta nella casella a fianco di ogni domanda. Scriva zero se non ha svolto nel corso
+                        degli ultimi tre mesi le attività indicate nelle domande.
+                    </p>
                 </div>
 
-                <div class="mb-4">
-                    <label for="data" class="form-label">Data</label>
-                    <input type="date" class="form-control" id="data" name="data" required>
-                </div>
-
-                <div class="questions">
-                    <div class="mb-3">
-                        <label for="q1" class="form-label">1. Quanti giorni di assenza dal lavoro o da scuola ha fatto negli ultimi tre mesi a causa del mal di testa?</label>
-                        <input type="number" class="form-control" id="q1" name="q1" min="0" max="90" required>
+                <form id="midasForm" method="POST" action="{{ url_for('save_midas') }}" onsubmit="return generateAndUploadPDF(event)">
+                    <div class="mb-4">
+                        <label for="nome" class="form-label">Cognome e Nome</label>
+                        <input type="text" class="form-control" id="nome" name="nome" value="{{ user_name }}" required>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="q2" class="form-label">2. Per quanti giorni, nel corso degli ultimi tre mesi, il suo rendimento sul lavoro o a scuola si è ridotto della metà a causa del mal di testa? <span class="text-muted fst-italic fw-light">(Non conteggi i giorni di assenza dal lavoro o da scuola che ha già indicato nella risposta alla prima domanda)</span></label>
-                        <input type="number" class="form-control" id="q2" name="q2" min="0" max="90" required>
+                    <div class="mb-4">
+                        <label for="data" class="form-label">Data</label>
+                        <input type="date" class="form-control" id="data" name="data" value="{{ today }}" required>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="q3" class="form-label">3. Per quanti giorni, nel corso degli ultimi tre mesi, non ha svolto i lavori di casa a causa del mal di testa?</label>
-                        <input type="number" class="form-control" id="q3" name="q3" min="0" max="90" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="q4" class="form-label">4. Per quanti giorni, nel corso degli ultimi tre mesi, il suo rendimento nei lavori di casa si è ridotto della metà a causa del mal di testa? <span class="text-muted fst-italic fw-light">(Non conteggi i giorni che ha già indicato nella risposta alla terza domanda)</span></label>
-                        <input type="number" class="form-control" id="q4" name="q4" min="0" max="90" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="q5" class="form-label">5. Per quanti giorni, nel corso degli ultimi tre mesi, non ha partecipato ad attività familiari, sociali o di svago a causa del mal di testa?</label>
-                        <input type="number" class="form-control" id="q5" name="q5" min="0" max="90" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="qA" class="form-label">A. Per quanti giorni, nel corso degli ultimi tre mesi, ha sofferto di mal di testa? <span class="text-muted fst-italic fw-light">(Se un mal di testa è durato più di un giorno, conti tutti i giorni)</span></label>
-                        <input type="number" class="form-control" id="qA" name="qA" min="0" max="90" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="qB" class="form-label">B. Su una scala da 0 a 10, quale è stata mediamente l'intensità del dolore durante questi mal di testa? <span class="text-muted fst-italic fw-light">(Dove 0 = assenza di dolore e 10 = dolore fortissimo, non potrebbe esser peggio)</span></label>
-                        <input type="range" class="form-range" id="qB" name="qB" min="0" max="10" step="1" required>
-                        <div class="d-flex justify-content-between">
-                            <span>0 = assenza di dolore</span>
-                            <span>10 = dolore fortissimo</span>
+                    <div class="questions">
+                        <div class="mb-3">
+                            <label for="q1" class="form-label">1. Quanti giorni di assenza dal lavoro o da scuola ha fatto negli ultimi tre mesi a causa del mal di testa?</label>
+                            <input type="number" class="form-control" id="q1" name="q1" min="0" max="90" required value="10">
                         </div>
-                        <div class="text-center">
-                            <span id="qBValue">5</span>
+
+                        <div class="mb-3">
+                            <label for="q2" class="form-label">2. Per quanti giorni, nel corso degli ultimi tre mesi, il suo rendimento sul lavoro o a scuola si è ridotto della metà a causa del mal di testa? <span class="text-muted fst-italic fw-light">(Non conteggi i giorni di assenza dal lavoro o da scuola che ha già indicato nella risposta alla prima domanda)</span></label>
+                            <input type="number" class="form-control" id="q2" name="q2" min="0" max="90" required value="20">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="q3" class="form-label">3. Per quanti giorni, nel corso degli ultimi tre mesi, non ha svolto i lavori di casa a causa del mal di testa?</label>
+                            <input type="number" class="form-control" id="q3" name="q3" min="0" max="90" required value="3">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="q4" class="form-label">4. Per quanti giorni, nel corso degli ultimi tre mesi, il suo rendimento nei lavori di casa si è ridotto della metà a causa del mal di testa? <span class="text-muted fst-italic fw-light">(Non conteggi i giorni che ha già indicato nella risposta alla terza domanda)</span></label>
+                            <input type="number" class="form-control" id="q4" name="q4" min="0" max="90" required value="4">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="q5" class="form-label">5. Per quanti giorni, nel corso degli ultimi tre mesi, non ha partecipato ad attività familiari, sociali o di svago a causa del mal di testa?</label>
+                            <input type="number" class="form-control" id="q5" name="q5" min="0" max="90" required value="5">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="qA" class="form-label">A. Per quanti giorni, nel corso degli ultimi tre mesi, ha sofferto di mal di testa? <span class="text-muted fst-italic fw-light">(Se un mal di testa è durato più di un giorno, conti tutti i giorni)</span></label>
+                            <input type="number" class="form-control" id="qA" name="qA" min="0" max="90" required value="6">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="qB" class="form-label">B. Su una scala da 0 a 10, quale è stata mediamente l'intensità del dolore durante questi mal di testa? <span class="text-muted fst-italic fw-light">(Dove 0 = assenza di dolore e 10 = dolore fortissimo, non potrebbe esser peggio)</span></label>
+                            <input type="range" class="form-range" id="qB" name="qB" min="0" max="10" step="1" required>
+                            <div class="d-flex justify-content-between">
+                                <span>0 = assenza di dolore</span>
+                                <span>10 = dolore fortissimo</span>
+                            </div>
+                            <div class="text-center">
+                                <span id="qBValue">5</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary">Salva Questionario</button>
-                </div>
-            </form>
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">Salva Questionario</button>
+                    </div>
+                </form>
 
-            <div class="mt-4">
-                <p class="text-muted small">
-                    *Copyright Innovative Medical Research 1997<br>
-                    Versione italiana sviluppata nel contesto del Programma di ricerca finalizzata Ministero della Sanità,
-                    convenzione n. ICS 030.3/RF98.38 - Centro Cefalee Istituto Neurologico C. Besta, Milano
-                </p>
+                <div class="mt-4">
+                    <p class="text-muted small">
+                        *Copyright Innovative Medical Research 1997<br>
+                        Versione italiana sviluppata nel contesto del Programma di ricerca finalizzata Ministero della Sanità,
+                        convenzione n. ICS 030.3/RF98.38 - Centro Cefalee Istituto Neurologico C. Besta, Milano
+                    </p>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Update range value display
-    document.getElementById('qB').addEventListener('input', function(e) {
-        document.getElementById('qBValue').textContent = e.target.value;
-    });
-
-    // Form validation
-    document.getElementById('midasForm').addEventListener('submit', function(e) {
-        const inputs = document.querySelectorAll('input[type="number"]');
-        inputs.forEach(input => {
-            const value = parseInt(input.value);
-            if (value < 0 || value > 90) {
-                e.preventDefault();
-                alert('I valori devono essere compresi tra 0 e 90 giorni');
-            }
-        });
-    });
-</script>
-{% endblock %}
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='midas.js') }}"></script>
+</body>
+</html>

@@ -41,7 +41,8 @@ def get_credentials_path():
 SCOPES = [
     'openid',
     'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/userinfo.email'
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile'
 ]
 FILE_ID = None
 ALLOWED_EMAIL = os.environ.get('GOOGLE_USER_EMAIL')
@@ -131,9 +132,28 @@ def oauth2callback():
         # Ottieni l'email dell'utente
         service = build('oauth2', 'v2', credentials=credentials)
         user_info = service.userinfo().get().execute()
+        
+        print("=== User Info Debug ===")
+        print("Raw user_info:", user_info)
+        print("Available fields:", list(user_info.keys()))
+        
+        # Try different name fields that Google might provide
+        given_name = user_info.get('given_name', '')
+        family_name = user_info.get('family_name', '')
+        full_name = f"{family_name} {given_name}".strip()
+        
         session['email'] = user_info['email']
+        session['user_info'] = {
+            'name': full_name,
+            'email': user_info['email']
+        }
         
         print(f"User email: {session['email']}")
+        print(f"User name components:")
+        print(f"- Given name: {given_name}")
+        print(f"- Family name: {family_name}")
+        print(f"- Full name: {full_name}")
+        print(f"Stored in session: {session['user_info']['name']}")
         print(f"Allowed email: {ALLOWED_EMAIL}")
         
         if session['email'] != ALLOWED_EMAIL:
@@ -395,59 +415,84 @@ def debug_file():
 
 @app.route('/midas')
 @login_required
-def midas_form():
-    """Render the MIDAS questionnaire form."""
-    return render_template('midas.html')
+def midas():
+    """Show MIDAS questionnaire."""
+    # Get user info from session
+    user_info = session.get('user_info', {})
+    user_name = user_info.get('name', '')
+    
+    # Get today's date in YYYY-MM-DD format
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    
+    return render_template('midas.html', user_name=user_name, today=today)
 
 @app.route('/save_midas', methods=['POST'])
 @login_required
 def save_midas():
-    """Save the MIDAS questionnaire data to a new file."""
+    """Save the MIDAS questionnaire PDF to Google Drive."""
     try:
-        # Get the form data
-        midas_data = {
-            'nome': request.form.get('nome'),
-            'data': request.form.get('data'),
-            'q1': int(request.form.get('q1', 0)),
-            'q2': int(request.form.get('q2', 0)),
-            'q3': int(request.form.get('q3', 0)),
-            'q4': int(request.form.get('q4', 0)),
-            'q5': int(request.form.get('q5', 0)),
-            'qA': int(request.form.get('qA', 0)),
-            'qB': int(request.form.get('qB', 0))
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'message': 'Nessun file ricevuto'
+            }), 400
+            
+        file = request.files['file']
+        if not file:
+            return jsonify({
+                'success': False,
+                'message': 'File vuoto'
+            }), 400
+            
+        # Get Google Drive service
+        service = get_google_drive_service()
+        if not service:
+            return jsonify({
+                'success': False,
+                'message': 'Impossibile connettersi a Google Drive'
+            }), 500
+            
+        # Create file metadata
+        file_metadata = {
+            'name': file.filename,
+            'parents': ['root'],  # Save in root folder
+            'mimeType': 'application/pdf'
         }
         
-        # Calculate MIDAS score (sum of questions 1-5)
-        midas_score = sum(midas_data[f'q{i}'] for i in range(1, 6))
-        midas_data['score'] = midas_score
+        # Create media
+        media = MediaIoBaseUpload(
+            file,
+            mimetype='application/pdf',
+            resumable=True
+        )
         
-        # Determine MIDAS grade
-        if midas_score <= 5:
-            grade = "I (Minima disabilità)"
-        elif midas_score <= 10:
-            grade = "II (Disabilità lieve)"
-        elif midas_score <= 20:
-            grade = "III (Disabilità moderata)"
-        else:
-            grade = "IV (Disabilità severa)"
-        midas_data['grade'] = grade
+        # Create the file
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
         
-        # Add timestamp
-        midas_data['timestamp'] = datetime.datetime.now().isoformat()
+        file_id = file.get('id')
         
-        # Save to a new file on Google Drive
-        file_id = save_midas_to_drive(midas_data)
+        # Set file permissions
+        service.permissions().create(
+            fileId=file_id,
+            body={
+                'type': 'user',
+                'role': 'writer',
+                'emailAddress': os.environ.get('GOOGLE_USER_EMAIL')
+            }
+        ).execute()
         
         return jsonify({
             'success': True,
-            'message': 'Questionario MIDAS salvato con successo',
-            'score': midas_score,
-            'grade': grade,
+            'message': 'PDF salvato con successo',
             'file_id': file_id
         })
         
     except Exception as e:
-        print(f"Errore durante il salvataggio del questionario MIDAS: {str(e)}")
+        print(f"Errore durante il salvataggio del PDF MIDAS: {str(e)}")
         return jsonify({
             'success': False,
             'message': f'Errore durante il salvataggio del questionario: {str(e)}'
