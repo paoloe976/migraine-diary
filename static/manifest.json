@@ -2,7 +2,7 @@
     "name": "Migraine Diary",
     "short_name": "Migraine Diary",
     "description": "Diario dell'emicrania",
-    "start_url": "/index.html",
+    "start_url": "/",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
     "display": "standalone",
