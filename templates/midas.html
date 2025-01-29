@@ -17,6 +17,23 @@
 </head>
 <body>
     <div class="container mt-5">
+        <div id="loadingSpinner" class="position-fixed top-50 start-50 translate-middle" style="display: none; z-index: 1050;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Caricamento...</span>
+            </div>
+        </div>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="saveToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        Questionario MIDAS salvato con successo
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-header">
                 <h2 class="text-center">Questionario MIDAS*</h2>
@@ -44,32 +61,32 @@
                     <div class="questions">
                         <div class="mb-3">
                             <label for="q1" class="form-label">1. Quanti giorni di assenza dal lavoro o da scuola ha fatto negli ultimi tre mesi a causa del mal di testa?</label>
-                            <input type="number" class="form-control" id="q1" name="q1" min="0" max="90" required value="10">
+                            <input type="number" class="form-control" id="q1" name="q1" min="0" max="90" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="q2" class="form-label">2. Per quanti giorni, nel corso degli ultimi tre mesi, il suo rendimento sul lavoro o a scuola si è ridotto della metà a causa del mal di testa? <span class="text-muted fst-italic fw-light">(Non conteggi i giorni di assenza dal lavoro o da scuola che ha già indicato nella risposta alla prima domanda)</span></label>
-                            <input type="number" class="form-control" id="q2" name="q2" min="0" max="90" required value="20">
+                            <input type="number" class="form-control" id="q2" name="q2" min="0" max="90" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="q3" class="form-label">3. Per quanti giorni, nel corso degli ultimi tre mesi, non ha svolto i lavori di casa a causa del mal di testa?</label>
-                            <input type="number" class="form-control" id="q3" name="q3" min="0" max="90" required value="3">
+                            <input type="number" class="form-control" id="q3" name="q3" min="0" max="90" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="q4" class="form-label">4. Per quanti giorni, nel corso degli ultimi tre mesi, il suo rendimento nei lavori di casa si è ridotto della metà a causa del mal di testa? <span class="text-muted fst-italic fw-light">(Non conteggi i giorni che ha già indicato nella risposta alla terza domanda)</span></label>
-                            <input type="number" class="form-control" id="q4" name="q4" min="0" max="90" required value="4">
+                            <input type="number" class="form-control" id="q4" name="q4" min="0" max="90" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="q5" class="form-label">5. Per quanti giorni, nel corso degli ultimi tre mesi, non ha partecipato ad attività familiari, sociali o di svago a causa del mal di testa?</label>
-                            <input type="number" class="form-control" id="q5" name="q5" min="0" max="90" required value="5">
+                            <input type="number" class="form-control" id="q5" name="q5" min="0" max="90" required>
                         </div>
 
                         <div class="mb-3">
                             <label for="qA" class="form-label">A. Per quanti giorni, nel corso degli ultimi tre mesi, ha sofferto di mal di testa? <span class="text-muted fst-italic fw-light">(Se un mal di testa è durato più di un giorno, conti tutti i giorni)</span></label>
-                            <input type="number" class="form-control" id="qA" name="qA" min="0" max="90" required value="6">
+                            <input type="number" class="form-control" id="qA" name="qA" min="0" max="90" required>
                         </div>
 
                         <div class="mb-3">
