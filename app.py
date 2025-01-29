@@ -500,6 +500,7 @@ def save_midas():
 
 
 @app.route('/serviceworker')
+@app.route('/serviceworker.js')
 def get_serviceworker():
     return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
