@@ -1,0 +1,21 @@
+{
+    "name": "Migraine Diary",
+    "short_name": "Migraine Diary",
+    "description": "Diario dell'emicrania",
+    "start_url": "/index.html",
+    "background_color": "#ffffff",
+    "theme_color": "#ffffff",
+    "display": "standalone",
+    "icons": [
+      {
+        "src": "/static/migraine-diary-192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/static/migraine-diary-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

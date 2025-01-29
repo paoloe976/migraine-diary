@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect, session, url_for, render_template
+from flask import Flask, request, jsonify, send_from_directory, redirect, session, url_for, render_template, current_app, Response
 from flask_cors import CORS
 import json
 import os
@@ -13,6 +13,7 @@ import secrets
 import datetime
 
 app = Flask(__name__)
+app.config['VIEW_STATIC_PATH'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 # Use a strong secret key for sessions
 app.secret_key = secrets.token_hex(32)  # Generate a secure random key
 # Configure session to be more secure and last longer
@@ -280,7 +281,6 @@ def load_data():
     
     fh.seek(0)
     data = json.loads(fh.read().decode('utf-8'))
-    print(f"Data loaded: {data}")
     return data
 
 def save_data(data):
@@ -497,6 +497,12 @@ def save_midas():
             'success': False,
             'message': f'Errore durante il salvataggio del questionario: {str(e)}'
         }), 400
+
+
+@app.route('/serviceworker')
+def get_serviceworker():
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
