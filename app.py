@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect, session, url_for
+from flask import Flask, request, jsonify, send_from_directory, redirect, session, url_for, render_template
 from flask_cors import CORS
 import json
 import os
@@ -10,6 +10,7 @@ from googleapiclient.http import MediaIoBaseDownload, MediaIoBaseUpload
 import io
 from functools import wraps
 import secrets
+import datetime
 
 app = Flask(__name__)
 # Use a strong secret key for sessions
@@ -277,6 +278,53 @@ def save_data(data):
     file = service.files().update(fileId=FILE_ID, media_body=media).execute()
     print(f"File updated: {file}")
 
+def save_midas_to_drive(midas_data):
+    """Save MIDAS questionnaire to a new file on Google Drive."""
+    print("=== SAVE MIDAS DATA ===")
+    service = get_google_drive_service()
+    if not service:
+        raise Exception("Impossibile connettersi a Google Drive")
+
+    # Create timestamp for filename
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"midas_{timestamp}.json"
+    
+    print(f"Creating new MIDAS file: {filename}")
+    
+    # Prepare file metadata
+    file_metadata = {
+        'name': filename,
+        'parents': ['root']  # Put in Drive root
+    }
+    
+    # Prepare file content
+    file_content = json.dumps(midas_data, indent=2, ensure_ascii=False)
+    fh = io.BytesIO(file_content.encode('utf-8'))
+    media = MediaIoBaseUpload(fh, mimetype='application/json', resumable=True)
+    
+    # Create the file
+    file = service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields='id'
+    ).execute()
+    
+    file_id = file.get('id')
+    print(f"Created MIDAS file with ID: {file_id}")
+    
+    # Set file permissions
+    service.permissions().create(
+        fileId=file_id,
+        body={
+            'type': 'user',
+            'role': 'writer',
+            'emailAddress': os.environ.get('GOOGLE_USER_EMAIL')
+        }
+    ).execute()
+    print("Permissions set")
+    
+    return file_id
+
 @app.route('/')
 @login_required
 def index():
@@ -344,6 +392,66 @@ def debug_file():
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/midas')
+@login_required
+def midas_form():
+    """Render the MIDAS questionnaire form."""
+    return render_template('midas.html')
+
+@app.route('/save_midas', methods=['POST'])
+@login_required
+def save_midas():
+    """Save the MIDAS questionnaire data to a new file."""
+    try:
+        # Get the form data
+        midas_data = {
+            'nome': request.form.get('nome'),
+            'data': request.form.get('data'),
+            'q1': int(request.form.get('q1', 0)),
+            'q2': int(request.form.get('q2', 0)),
+            'q3': int(request.form.get('q3', 0)),
+            'q4': int(request.form.get('q4', 0)),
+            'q5': int(request.form.get('q5', 0)),
+            'qA': int(request.form.get('qA', 0)),
+            'qB': int(request.form.get('qB', 0))
+        }
+        
+        # Calculate MIDAS score (sum of questions 1-5)
+        midas_score = sum(midas_data[f'q{i}'] for i in range(1, 6))
+        midas_data['score'] = midas_score
+        
+        # Determine MIDAS grade
+        if midas_score <= 5:
+            grade = "I (Minima disabilità)"
+        elif midas_score <= 10:
+            grade = "II (Disabilità lieve)"
+        elif midas_score <= 20:
+            grade = "III (Disabilità moderata)"
+        else:
+            grade = "IV (Disabilità severa)"
+        midas_data['grade'] = grade
+        
+        # Add timestamp
+        midas_data['timestamp'] = datetime.datetime.now().isoformat()
+        
+        # Save to a new file on Google Drive
+        file_id = save_midas_to_drive(midas_data)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Questionario MIDAS salvato con successo',
+            'score': midas_score,
+            'grade': grade,
+            'file_id': file_id
+        })
+        
+    except Exception as e:
+        print(f"Errore durante il salvataggio del questionario MIDAS: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Errore durante il salvataggio del questionario: {str(e)}'
+        }), 400
 
 if __name__ == '__main__':
     app.run(debug=True)

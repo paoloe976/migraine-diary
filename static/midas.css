@@ -1,0 +1,36 @@
+/* MIDAS Questionnaire Styles */
+.questions {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.questions .form-label {
+    font-weight: 500;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.questions .form-control {
+    max-width: 100px;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+.questions .form-range {
+    max-width: 100%;
+}
+
+#qBValue {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* Make form more responsive on mobile */
+@media (max-width: 768px) {
+    .questions .form-control {
+        display: block;
+        margin: 10px 0;
+        max-width: 100%;
+    }
+}
