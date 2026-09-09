@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
-import { getEarliestEpisodeDate, subscribeEpisodesInRange } from '../lib/data'
-import type { Episode, Severity } from '../lib/types'
-import { SEVERITY_LABEL, cap, toDateInput } from '../lib/format'
+import {
+  getEarliestEpisodeDate,
+  subscribeEpisodesInRange,
+  subscribeProphylaxis,
+} from '../lib/data'
+import type { Episode, Prophylaxis, Severity } from '../lib/types'
+import { SEVERITY_LABEL, cap, monthYearLabel, toDateInput } from '../lib/format'
 import { MONTHS, WEEKDAYS, monthGrid } from '../lib/calendar'
 import { locationSummary } from '../components/HeadMap'
 
@@ -80,7 +84,13 @@ function smoothPath(p: Array<[number, number]>): string {
   return d
 }
 
-function TrendChart({ months }: { months: MonthData[] }) {
+function TrendChart({
+  months,
+  prophylaxis,
+}: {
+  months: MonthData[]
+  prophylaxis: Prophylaxis[]
+}) {
   const W = 640
   const H = 210
   const padL = 26
@@ -101,8 +111,44 @@ function TrendChart({ months }: { months: MonthData[] }) {
     .map((m, i) => ({ m, i }))
     .filter(({ i }) => i % step === 0 || i === n - 1)
 
+  const dateToX = (d: Date) => {
+    const idx = months.findIndex(
+      (m) => m.year === d.getFullYear() && m.month0 === d.getMonth(),
+    )
+    if (idx >= 0) return x(idx)
+    const first = new Date(months[0]?.year ?? 0, months[0]?.month0 ?? 0)
+    return d < first ? x(0) : x(n - 1)
+  }
+  const bands = prophylaxis
+    .filter((p) => p.start && p.drug)
+    .map((p) => {
+      const a = dateToX(p.start as Date)
+      const b = p.end ? dateToX(p.end) : x(n - 1)
+      return { p, x1: Math.min(a, b), x2: Math.max(a, b) }
+    })
+    .filter((b) => b.x2 - b.x1 > 2)
+
   return (
     <svg className="report-trend" viewBox={`0 0 ${W} ${H}`}>
+      {bands.map((b, i) => (
+        <g key={b.p.id}>
+          <rect
+            className="rt-band"
+            x={b.x1}
+            y={padT}
+            width={b.x2 - b.x1}
+            height={H - padB - padT}
+          />
+          <text
+            className="rt-band-lbl"
+            x={(b.x1 + b.x2) / 2}
+            y={padT + 7 + i * 9}
+            textAnchor="middle"
+          >
+            {b.p.drug}
+          </text>
+        </g>
+      ))}
       {[0, maxV / 2, maxV].map((v) => (
         <g key={v}>
           <line className="rb-grid" x1={padL} y1={y(v)} x2={W - padR} y2={y(v)} />
@@ -144,6 +190,7 @@ export default function Stampa() {
   const [earliest, setEarliest] = useState<Date | null>(null)
   const [showCalendar, setShowCalendar] = useState(true)
   const [episodes, setEpisodes] = useState<Episode[]>([])
+  const [prophylaxis, setProphylaxis] = useState<Prophylaxis[]>([])
 
   const rangeStart = useMemo(
     () => new Date(from.getFullYear(), from.getMonth(), 1),
@@ -154,6 +201,11 @@ export default function Stampa() {
   useEffect(() => {
     if (!user) return
     getEarliestEpisodeDate(user.uid).then(setEarliest)
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    return subscribeProphylaxis(user.uid, setProphylaxis)
   }, [user])
 
   useEffect(() => {
@@ -331,11 +383,35 @@ export default function Stampa() {
 
                 <section className="report-section">
                   <h2>Andamento</h2>
-                  <TrendChart months={months} />
+                  <TrendChart months={months} prophylaxis={prophylaxis} />
                   <p className="report-cap">
                     giorni con mal di testa per mese · linea tratteggiata = media del periodo
+                    {prophylaxis.some((p) => p.start && p.drug) &&
+                      ' · fasce = periodi di profilassi'}
                   </p>
                 </section>
+
+                {prophylaxis.length > 0 && (
+                  <section className="report-section report-tallies">
+                    <div>
+                      <h3>Profilassi</h3>
+                      <p>
+                        {[...prophylaxis]
+                          .sort(
+                            (a, b) =>
+                              (b.start?.getTime() ?? 0) - (a.start?.getTime() ?? 0),
+                          )
+                          .map((p) => {
+                            const when = p.start
+                              ? `dal ${monthYearLabel(p.start)}${p.end ? ` al ${monthYearLabel(p.end)}` : ''}`
+                              : ''
+                            return `${p.drug || 'senza nome'} (${p.cadence}${when ? `, ${when}` : ''})`
+                          })
+                          .join(' · ')}
+                      </p>
+                    </div>
+                  </section>
+                )}
 
                 {showCalendar && (
                   <section className="report-section report-calendars">

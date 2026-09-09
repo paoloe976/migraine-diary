@@ -33,3 +33,21 @@ export interface Profile {
   meds: string[]
   triggers: string[]
 }
+
+export type Cadence = 'giornaliera' | 'settimanale' | 'mensile' | 'altro'
+
+/** Una terapia di profilassi (preventiva). */
+export interface Prophylaxis {
+  id: string
+  drug: string
+  cadence: Cadence
+  /** mese di inizio (giorno 1) */
+  start: Date | null
+  /** mese di fine; null = in corso */
+  end: Date | null
+  note: string
+  createdAt: Date | null
+  updatedAt: Date | null
+}
+
+export type ProphylaxisPatch = Partial<Omit<Prophylaxis, 'id' | 'createdAt' | 'updatedAt'>>

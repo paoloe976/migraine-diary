@@ -34,7 +34,7 @@ export default function Altro() {
     ['🧩', 'Tipi di mal di testa', '/liste/tipi'],
     ['💊', 'I miei farmaci', '/liste/farmaci'],
     ['⚡', 'Cause scatenanti', '/liste/scatenanti'],
-    ['💉', 'Profilassi in corso'],
+    ['💉', 'Profilassi in corso', '/profilassi'],
     ['📋', 'Questionari clinici'],
   ]
 

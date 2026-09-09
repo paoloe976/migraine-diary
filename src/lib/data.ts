@@ -38,7 +38,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { auth, db } from './firebase'
-import type { Episode, EpisodePatch, Profile } from './types'
+import type { Episode, EpisodePatch, Profile, Prophylaxis, ProphylaxisPatch } from './types'
 
 // ============================ Auth ============================
 
@@ -257,4 +257,63 @@ export async function getEarliestEpisodeDate(uid: string): Promise<Date | null> 
   const snap = await getDocs(query(episodesCol(uid), orderBy('start', 'asc'), limit(1)))
   const first = snap.docs[0]
   return first ? (toEpisode(first).start) : null
+}
+
+// ========================= Profilassi ==========================
+
+const prophylaxisCol = (uid: string) => collection(db, 'users', uid, 'prophylaxis')
+const prophylaxisRef = (uid: string, id: string) =>
+  doc(db, 'users', uid, 'prophylaxis', id)
+
+function toProphylaxis(snap: QueryDocumentSnapshot<DocumentData>): Prophylaxis {
+  const d = snap.data()
+  return {
+    id: snap.id,
+    drug: d.drug ?? '',
+    cadence: d.cadence ?? 'giornaliera',
+    start: toDate(d.start),
+    end: toDate(d.end),
+    note: d.note ?? '',
+    createdAt: toDate(d.createdAt),
+    updatedAt: toDate(d.updatedAt),
+  }
+}
+
+export function createProphylaxis(uid: string): string {
+  const ref = doc(prophylaxisCol(uid))
+  void setDoc(ref, {
+    drug: '',
+    cadence: 'giornaliera',
+    start: null,
+    end: null,
+    note: '',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+  return ref.id
+}
+
+export function updateProphylaxis(
+  uid: string,
+  id: string,
+  patch: ProphylaxisPatch,
+): Promise<void> {
+  const data: DocumentData = { ...patch, updatedAt: serverTimestamp() }
+  if (patch.start !== undefined) {
+    data.start = patch.start ? Timestamp.fromDate(patch.start) : null
+  }
+  if (patch.end !== undefined) {
+    data.end = patch.end ? Timestamp.fromDate(patch.end) : null
+  }
+  return updateDoc(prophylaxisRef(uid, id), data)
+}
+
+export const deleteProphylaxis = (uid: string, id: string): Promise<void> =>
+  deleteDoc(prophylaxisRef(uid, id))
+
+export function subscribeProphylaxis(
+  uid: string,
+  cb: (items: Prophylaxis[]) => void,
+): Unsubscribe {
+  return onSnapshot(prophylaxisCol(uid), (s) => cb(s.docs.map(toProphylaxis)))
 }

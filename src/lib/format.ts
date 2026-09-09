@@ -62,3 +62,14 @@ export function withTime(base: Date, timeStr: string): Date {
   d.setHours(h, min, 0, 0)
   return d
 }
+
+export const toMonthInput = (d: Date): string =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+
+export function fromMonthInput(value: string): Date {
+  const [y, m] = value.split('-').map(Number)
+  return new Date(y, m - 1, 1, 12)
+}
+
+export const monthYearLabel = (d: Date): string =>
+  cap(d.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' }))
