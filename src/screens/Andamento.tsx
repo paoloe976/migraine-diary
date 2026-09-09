@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../lib/auth'
-import { subscribeEpisodesSince } from '../lib/data'
+import { getEarliestEpisodeDate, subscribeEpisodesInRange } from '../lib/data'
 import type { Episode } from '../lib/types'
 import { cap } from '../lib/format'
+import { MONTHS } from '../lib/calendar'
 
-const MONTHS_BACK = 6
+const WINDOW = 6
 /** Soglia indicativa per la cefalea da uso eccessivo di farmaci (triptani). */
 const MED_THRESHOLD = 10
 const METER_MAX = 15
 
 interface MonthBucket {
   key: string
+  year: number
+  month0: number
   label: string
   isCurrent: boolean
   headacheDays: number
@@ -19,106 +22,191 @@ interface MonthBucket {
   byMed: Array<[string, number]>
 }
 
-function dayKey(d: Date) {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+const keyOf = (y: number, m: number) => `${y}-${m}`
+const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+
+/** monthDelta({y,m}, n) -> mese spostato di n */
+function shift(y: number, m: number, n: number): { y: number; m: number } {
+  const d = new Date(y, m + n, 1)
+  return { y: d.getFullYear(), m: d.getMonth() }
 }
 
-function buildBuckets(episodes: Episode[], now: Date): MonthBucket[] {
-  const months = Array.from({ length: MONTHS_BACK }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - (MONTHS_BACK - 1 - i), 1)
+function buildBuckets(episodes: Episode[], endY: number, endM: number, now: Date): MonthBucket[] {
+  const slots = Array.from({ length: WINDOW }, (_, i) => {
+    const { y, m } = shift(endY, endM, -(WINDOW - 1 - i))
     return {
-      key: `${d.getFullYear()}-${d.getMonth()}`,
-      label: d.toLocaleDateString('it-IT', { month: 'short' }).replace('.', ''),
-      isCurrent: d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(),
+      key: keyOf(y, m),
+      year: y,
+      month0: m,
+      label: MONTHS[m].slice(0, 3),
+      isCurrent: y === now.getFullYear() && m === now.getMonth(),
       days: new Set<string>(),
       medDays: new Set<string>(),
       types: new Map<string, number>(),
       meds: new Map<string, number>(),
     }
   })
-  const idx = new Map(months.map((m, i) => [m.key, i]))
+  const idx = new Map(slots.map((s, i) => [s.key, i]))
 
   for (const e of episodes) {
-    const i = idx.get(`${e.start.getFullYear()}-${e.start.getMonth()}`)
+    const i = idx.get(keyOf(e.start.getFullYear(), e.start.getMonth()))
     if (i === undefined) continue
-    const m = months[i]
-    m.days.add(dayKey(e.start))
-    const t = e.type ?? 'senza tipo'
-    m.types.set(t, (m.types.get(t) ?? 0) + 1)
+    const s = slots[i]
+    s.days.add(dayKey(e.start))
+    s.types.set(e.type ?? 'senza tipo', (s.types.get(e.type ?? 'senza tipo') ?? 0) + 1)
     if (e.meds.length > 0) {
-      m.medDays.add(dayKey(e.start))
-      for (const med of e.meds) m.meds.set(med, (m.meds.get(med) ?? 0) + 1)
+      s.medDays.add(dayKey(e.start))
+      for (const med of e.meds) s.meds.set(med, (s.meds.get(med) ?? 0) + 1)
     } else {
-      m.meds.set('nessun farmaco', (m.meds.get('nessun farmaco') ?? 0) + 1)
+      s.meds.set('nessun farmaco', (s.meds.get('nessun farmaco') ?? 0) + 1)
     }
   }
 
-  return months.map((m) => ({
-    key: m.key,
-    label: m.label,
-    isCurrent: m.isCurrent,
-    headacheDays: m.days.size,
-    medDays: m.medDays.size,
-    byType: [...m.types.entries()].sort((a, b) => b[1] - a[1]),
-    byMed: [...m.meds.entries()].sort((a, b) => b[1] - a[1]),
+  return slots.map((s) => ({
+    key: s.key,
+    year: s.year,
+    month0: s.month0,
+    label: s.label,
+    isCurrent: s.isCurrent,
+    headacheDays: s.days.size,
+    medDays: s.medDays.size,
+    byType: [...s.types.entries()].sort((a, b) => b[1] - a[1]),
+    byMed: [...s.meds.entries()].sort((a, b) => b[1] - a[1]),
   }))
 }
 
-function niceMax(v: number): number {
-  return Math.max(4, Math.ceil(v / 2) * 2)
-}
+const niceMax = (v: number) => Math.max(4, Math.ceil(v / 2) * 2)
 
 export default function Andamento() {
   const { user } = useAuth()
   const now = useMemo(() => new Date(), [])
+
+  const [end, setEnd] = useState({ y: now.getFullYear(), m: now.getMonth() })
   const [episodes, setEpisodes] = useState<Episode[]>([])
-  const [selected, setSelected] = useState<string | null>(null)
+  const [selectedKey, setSelectedKey] = useState<string | null>(null)
+  const [earliest, setEarliest] = useState<Date | null>(null)
 
   useEffect(() => {
     if (!user) return
-    const since = new Date(now.getFullYear(), now.getMonth() - (MONTHS_BACK - 1), 1)
-    return subscribeEpisodesSince(user.uid, since, setEpisodes)
-  }, [user, now])
+    getEarliestEpisodeDate(user.uid).then(setEarliest)
+  }, [user])
 
-  const buckets = useMemo(() => buildBuckets(episodes, now), [episodes, now])
-  const current = buckets[buckets.length - 1]
-  const hasData = episodes.length > 0
+  useEffect(() => {
+    if (!user) return
+    const start = shift(end.y, end.m, -(WINDOW - 1))
+    const from = new Date(start.y, start.m, 1)
+    const to = new Date(end.y, end.m + 1, 1)
+    return subscribeEpisodesInRange(user.uid, from, to, setEpisodes)
+  }, [user, end])
+
+  const buckets = useMemo(
+    () => buildBuckets(episodes, end.y, end.m, now),
+    [episodes, end, now],
+  )
+
+  // selezione: mantiene il mese scelto se ancora in finestra, altrimenti l'ultimo
+  useEffect(() => {
+    setSelectedKey((prev) => {
+      if (prev && buckets.some((b) => b.key === prev)) return prev
+      const cur = buckets.find((b) => b.isCurrent)
+      return (cur ?? buckets[buckets.length - 1]).key
+    })
+  }, [buckets])
+
+  const selected = buckets.find((b) => b.key === selectedKey) ?? buckets[buckets.length - 1]
   const max = niceMax(Math.max(...buckets.map((b) => b.headacheDays)))
-  const drill = selected ? buckets.find((b) => b.key === selected) : null
 
-  // geometria grafico a barre
+  const asMonths = (y: number, m: number) => y * 12 + m
+  const prevEnd = shift(end.y, end.m, -1)
+  const canGoBack =
+    !earliest ||
+    asMonths(prevEnd.y, prevEnd.m) >= asMonths(earliest.getFullYear(), earliest.getMonth())
+  const canGoFwd = asMonths(end.y, end.m) < asMonths(now.getFullYear(), now.getMonth())
+
+  const years: number[] = []
+  if (earliest) {
+    for (let y = earliest.getFullYear(); y <= now.getFullYear(); y += 1) years.push(y)
+  }
+
+  function goToYear(y: number) {
+    setEnd(y === now.getFullYear() ? { y, m: now.getMonth() } : { y, m: 11 })
+  }
+
+  // geometria grafico
   const W = 300
   const H = 150
   const padL = 26
   const padB = 26
   const padT = 12
   const baseline = H - padB
-  const slot = (W - padL) / MONTHS_BACK
+  const slot = (W - padL) / WINDOW
   const barW = Math.min(24, slot * 0.5)
 
-  const meterLevel =
-    current.medDays >= MED_THRESHOLD ? 'alto' : current.medDays >= MED_THRESHOLD - 3 ? 'medio' : 'ok'
+  const rangeLabel = `${buckets[0].label} ${buckets[0].year !== buckets[WINDOW - 1].year ? buckets[0].year : ''} – ${buckets[WINDOW - 1].label} ${buckets[WINDOW - 1].year}`.replace('  ', ' ')
+
+  const level =
+    selected.medDays >= MED_THRESHOLD
+      ? 'alto'
+      : selected.medDays >= MED_THRESHOLD - 3
+        ? 'medio'
+        : 'ok'
   const meterNote =
-    meterLevel === 'alto'
-      ? `${current.medDays} giorni. Sopra la soglia indicativa — vale la pena parlarne col neurologo.`
-      : meterLevel === 'medio'
-        ? `${current.medDays} giorni. Ti stai avvicinando alla soglia di ${MED_THRESHOLD}.`
-        : `${current.medDays} giorni. Sotto la soglia di attenzione.`
+    level === 'alto'
+      ? `${selected.medDays} giorni. Sopra la soglia indicativa — vale la pena parlarne col neurologo.`
+      : level === 'medio'
+        ? `${selected.medDays} giorni. Vicino alla soglia di ${MED_THRESHOLD}.`
+        : `${selected.medDays} giorni. Sotto la soglia di attenzione.`
+
+  const hasAny = earliest !== null
 
   return (
     <section className="screen">
       <h1 className="screen-title">Andamento</h1>
-      <p className="screen-sub">ultimi {MONTHS_BACK} mesi</p>
 
-      {!hasData ? (
+      {!hasAny ? (
         <p className="placeholder">
           Registra qualche episodio e qui vedrai i tuoi numeri nel tempo.
         </p>
       ) : (
         <>
+          <div className="trend-nav">
+            <button
+              type="button"
+              onClick={() => setEnd(shift(end.y, end.m, -1))}
+              disabled={!canGoBack}
+              aria-label="Periodo precedente"
+            >
+              ‹
+            </button>
+            <b>{rangeLabel}</b>
+            <button
+              type="button"
+              onClick={() => setEnd(shift(end.y, end.m, 1))}
+              disabled={!canGoFwd}
+              aria-label="Periodo successivo"
+            >
+              ›
+            </button>
+          </div>
+
+          {years.length > 1 && (
+            <div className="year-chips">
+              {years.map((y) => (
+                <button
+                  type="button"
+                  key={y}
+                  className={buckets.some((b) => b.year === y) ? 'is-on' : undefined}
+                  onClick={() => goToYear(y)}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+          )}
+
           <div className="chart-card">
             <h2>Giorni con mal di testa al mese</h2>
-            <p className="chart-cap">tocca un mese per il dettaglio</p>
+            <p className="chart-cap">tocca un mese per cambiare il dettaglio</p>
             <svg
               className="bar-chart"
               viewBox={`0 0 ${W} ${H}`}
@@ -140,23 +228,29 @@ export default function Andamento() {
                 const cx = padL + slot * i + slot / 2
                 const h = (b.headacheDays / max) * (baseline - padT)
                 const y = baseline - h
-                const on = b.key === selected
+                const on = b.key === selectedKey
                 return (
                   <g
                     key={b.key}
                     className="bar-slot"
-                    onClick={() => setSelected(on ? null : b.key)}
+                    onClick={() => setSelectedKey(b.key)}
                     role="button"
                     tabIndex={0}
                     aria-label={`${b.label}: ${b.headacheDays} giorni`}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault()
-                        setSelected(on ? null : b.key)
+                        setSelectedKey(b.key)
                       }
                     }}
                   >
-                    <rect x={cx - slot / 2} y={padT} width={slot} height={baseline - padT + 4} fill="transparent" />
+                    <rect
+                      x={cx - slot / 2}
+                      y={padT}
+                      width={slot}
+                      height={baseline - padT + 4}
+                      fill="transparent"
+                    />
                     <rect
                       className={`bar${on ? ' is-on' : ''}${b.isCurrent ? ' is-current' : ''}`}
                       x={cx - barW / 2}
@@ -178,28 +272,35 @@ export default function Andamento() {
               })}
             </svg>
 
-            {drill && (
-              <div className="drill">
-                <h3>
-                  {cap(drill.label)} · {drill.headacheDays} giorni con mal di testa
-                </h3>
+            <div className="drill">
+              <h3>
+                {cap(MONTHS[selected.month0])} {selected.year} · {selected.headacheDays} giorni
+                con mal di testa
+              </h3>
+              {selected.headacheDays === 0 ? (
+                <p className="chart-cap">nessun episodio in questo mese</p>
+              ) : (
                 <div className="drill-cols">
-                  <DrillList title="per tipo" rows={drill.byType} />
-                  <DrillList title="per farmaco" rows={drill.byMed} />
+                  <DrillList title="per tipo" rows={selected.byType} />
+                  <DrillList title="per farmaco" rows={selected.byMed} />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           <div className="chart-card">
-            <h2>Giorni con sintomatico · {cap(current.label)}</h2>
+            <h2>
+              Giorni con sintomatico · {cap(MONTHS[selected.month0])} {selected.year}
+            </h2>
             <p className="chart-cap">triptani e antinfiammatori presi</p>
             <div className="meter">
               <div className="meter-track">
                 <div
                   className="meter-fill"
-                  data-level={meterLevel}
-                  style={{ width: `${Math.min(100, (current.medDays / METER_MAX) * 100)}%` }}
+                  data-level={level}
+                  style={{
+                    width: `${Math.min(100, (selected.medDays / METER_MAX) * 100)}%`,
+                  }}
                 />
                 <div
                   className="meter-mark"

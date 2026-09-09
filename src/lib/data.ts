@@ -24,6 +24,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   limit,
   onSnapshot,
   orderBy,
@@ -211,15 +212,24 @@ export function subscribeMonthEpisodes(
   return onSnapshot(q, (s) => cb(s.docs.map(toEpisode)))
 }
 
-export function subscribeEpisodesSince(
+export function subscribeEpisodesInRange(
   uid: string,
-  since: Date,
+  from: Date,
+  to: Date,
   cb: (episodes: Episode[]) => void,
 ): Unsubscribe {
   const q = query(
     episodesCol(uid),
-    where('start', '>=', Timestamp.fromDate(since)),
+    where('start', '>=', Timestamp.fromDate(from)),
+    where('start', '<', Timestamp.fromDate(to)),
     orderBy('start', 'asc'),
   )
   return onSnapshot(q, (s) => cb(s.docs.map(toEpisode)))
+}
+
+/** Data del primo episodio in assoluto (per limitare lo scorrimento temporale). */
+export async function getEarliestEpisodeDate(uid: string): Promise<Date | null> {
+  const snap = await getDocs(query(episodesCol(uid), orderBy('start', 'asc'), limit(1)))
+  const first = snap.docs[0]
+  return first ? (toEpisode(first).start) : null
 }
