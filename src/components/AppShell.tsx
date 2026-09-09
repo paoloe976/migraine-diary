@@ -15,6 +15,9 @@ export interface ShellContext {
   openLog: (episodeId?: string) => void
   /** Crea un episodio nuovo con una data specifica (dal calendario). */
   openLogForDate: (date: Date) => void
+  /** Id dell'ultimo episodio NUOVO appena confermato (per il badge in home). */
+  lastLoggedId: string | null
+  clearLastLogged: () => void
 }
 
 export const useShell = (): ShellContext => useOutletContext<ShellContext>()
@@ -22,6 +25,14 @@ export const useShell = (): ShellContext => useOutletContext<ShellContext>()
 export default function AppShell() {
   const { user } = useAuth()
   const [log, setLog] = useState<OpenLog | null>(null)
+  const [lastLoggedId, setLastLoggedId] = useState<string | null>(null)
+
+  const clearLastLogged = useCallback(() => setLastLoggedId(null), [])
+
+  function closeLog(kept: boolean) {
+    if (kept && log?.isNew) setLastLoggedId(log.id)
+    setLog(null)
+  }
 
   const openLog = useCallback(
     (episodeId?: string) => {
@@ -45,7 +56,11 @@ export default function AppShell() {
   return (
     <div className="app">
       <main className="app-main">
-        <Outlet context={{ openLog, openLogForDate } satisfies ShellContext} />
+        <Outlet
+          context={
+            { openLog, openLogForDate, lastLoggedId, clearLastLogged } satisfies ShellContext
+          }
+        />
       </main>
       <TabBar />
       {log && user && (
@@ -53,7 +68,7 @@ export default function AppShell() {
           uid={user.uid}
           episodeId={log.id}
           isNew={log.isNew}
-          onClose={() => setLog(null)}
+          onClose={closeLog}
         />
       )}
     </div>

@@ -353,6 +353,28 @@ button {
   cursor: pointer;
 }
 
+.episode.is-flash {
+  background: var(--accent-dim);
+  border-bottom-color: transparent;
+  border-radius: 12px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.ep-badge {
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: 1px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
 .sev-dot {
   width: 11px;
   height: 11px;

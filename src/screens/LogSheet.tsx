@@ -40,7 +40,8 @@ interface Props {
   uid: string
   episodeId: string
   isNew: boolean
-  onClose: () => void
+  /** kept = true se l'episodio è stato tenuto (Fatto / X / tap fuori), false se eliminato. */
+  onClose: (kept: boolean) => void
 }
 
 export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
@@ -65,9 +66,9 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     void updateEpisode(uid, episodeId, p)
   }
 
-  function close() {
+  function close(kept = true) {
     setClosing(true)
-    window.setTimeout(onClose, 200)
+    window.setTimeout(() => onClose(kept), 200)
   }
 
   async function remove() {
@@ -78,7 +79,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     })
     if (ok) {
       void deleteEpisode(uid, episodeId)
-      close()
+      close(false)
     }
   }
 
@@ -98,7 +99,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     <>
       <div
         className={`backdrop${closing ? '' : ' is-open'}`}
-        onClick={close}
+        onClick={() => close()}
         aria-hidden="true"
       />
       <div className={`sheet${closing ? '' : ' is-open'}`} role="dialog" aria-label="Episodio">
@@ -111,7 +112,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
               </span>
               {isNew ? 'Episodio registrato' : 'Modifica episodio'}
             </span>
-            <button type="button" className="sheet-x" onClick={close} aria-label="Chiudi">
+            <button type="button" className="sheet-x" onClick={() => close()} aria-label="Chiudi">
               ✕
             </button>
           </div>
@@ -287,7 +288,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
               <button type="button" className="btn-cancel" onClick={remove}>
                 Elimina
               </button>
-              <button type="button" className="btn-done" onClick={close}>
+              <button type="button" className="btn-done" onClick={() => close()}>
                 Fatto
               </button>
             </div>

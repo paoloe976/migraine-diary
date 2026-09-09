@@ -1,15 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../lib/auth'
 import { useShell } from '../components/AppShell'
-import { subscribeMonthEpisodes, subscribeRecentEpisodes } from '../lib/data'
+import {
+  subscribeEpisode,
+  subscribeMonthEpisodes,
+  subscribeRecentEpisodes,
+} from '../lib/data'
 import type { Episode } from '../lib/types'
 import { cap, episodeSubtitle, episodeTitle, monthStats } from '../lib/format'
 
 export default function Home() {
   const { user } = useAuth()
-  const { openLog } = useShell()
+  const { openLog, lastLoggedId, clearLastLogged } = useShell()
   const [recent, setRecent] = useState<Episode[]>([])
   const [monthEpisodes, setMonthEpisodes] = useState<Episode[]>([])
+
+  // Episodio appena inserito: lo si evidenzia e lo si mostra comunque, anche
+  // se una data insolita lo terrebbe fuori dagli "ultimi 3". Effimero: sparisce
+  // uscendo dalla home (il componente si smonta e lo stato si perde).
+  const [flashId, setFlashId] = useState<string | null>(null)
+  const [flashEpisode, setFlashEpisode] = useState<Episode | null>(null)
 
   const now = useMemo(() => new Date(), [])
 
@@ -23,11 +33,32 @@ export default function Home() {
     }
   }, [user, now])
 
+  useEffect(() => {
+    if (lastLoggedId) {
+      setFlashId(lastLoggedId)
+      clearLastLogged()
+    }
+  }, [lastLoggedId, clearLastLogged])
+
+  useEffect(() => {
+    if (!user || !flashId) {
+      setFlashEpisode(null)
+      return
+    }
+    return subscribeEpisode(user.uid, flashId, setFlashEpisode)
+  }, [user, flashId])
+
   const stats = monthStats(monthEpisodes)
   const monthName = cap(now.toLocaleDateString('it-IT', { month: 'long' }))
   const today = cap(
     now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }),
   )
+
+  // lista mostrata: se l'episodio flash non è già tra i recenti, lo si mette in cima
+  const list =
+    flashEpisode && !recent.some((e) => e.id === flashEpisode.id)
+      ? [flashEpisode, ...recent]
+      : recent
 
   return (
     <section className="screen">
@@ -60,21 +91,32 @@ export default function Home() {
         </div>
       </div>
 
-      {recent.length > 0 && (
+      {list.length > 0 && (
         <>
           <p className="section-label">Ultimi episodi</p>
-          {recent.map((e) => (
-            <button key={e.id} type="button" className="episode" onClick={() => openLog(e.id)}>
-              <span className={`sev-dot sev-${e.severity ?? 'none'}`} aria-hidden="true" />
-              <span className="ep-main">
-                <b>{episodeTitle(e)}</b>
-                <p>{episodeSubtitle(e)}</p>
-              </span>
-              <span className="chev" aria-hidden="true">
-                ›
-              </span>
-            </button>
-          ))}
+          {list.map((e) => {
+            const isFlash = e.id === flashId
+            return (
+              <button
+                key={e.id}
+                type="button"
+                className={`episode${isFlash ? ' is-flash' : ''}`}
+                onClick={() => openLog(e.id)}
+              >
+                <span className={`sev-dot sev-${e.severity ?? 'none'}`} aria-hidden="true" />
+                <span className="ep-main">
+                  <b>
+                    {episodeTitle(e)}
+                    {isFlash && <span className="ep-badge">appena inserito</span>}
+                  </b>
+                  <p>{episodeSubtitle(e)}</p>
+                </span>
+                <span className="chev" aria-hidden="true">
+                  ›
+                </span>
+              </button>
+            )
+          })}
         </>
       )}
     </section>
