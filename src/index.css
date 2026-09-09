@@ -495,20 +495,53 @@ button {
 .saved-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
+  gap: 9px;
+  font-size: 15px;
   color: var(--lieve);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .saved-badge .tick {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--lieve) 22%, transparent);
   display: grid;
   place-items: center;
-  font-size: 12px;
+  font-size: 13px;
+}
+
+.saved-badge.is-new {
+  animation: badge-pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.saved-badge.is-new .tick {
+  animation: tick-pulse 1.1s ease-out 2;
+}
+
+@keyframes badge-pop {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.3;
+  }
+  55% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes tick-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--lieve) 26%, transparent);
+  }
 }
 
 .when-field {
@@ -703,8 +736,12 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
 

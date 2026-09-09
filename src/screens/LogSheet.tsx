@@ -15,7 +15,14 @@ import type {
   Profile,
   Severity,
 } from '../lib/types'
-import { SEVERITY_LABEL, toDateInput, toTimeInput, withDate, withTime } from '../lib/format'
+import {
+  SEVERITY_LABEL,
+  isEmptyEpisode,
+  toDateInput,
+  toTimeInput,
+  withDate,
+  withTime,
+} from '../lib/format'
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
@@ -69,16 +76,19 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     void updateEpisode(uid, episodeId, p)
   }
 
-  function close() {
+  function close(discardIfEmpty = false) {
+    if (discardIfEmpty && isNew && draft && isEmptyEpisode(draft)) {
+      void deleteEpisode(uid, episodeId)
+    }
     setClosing(true)
     window.setTimeout(onClose, 200)
   }
 
-  function cancel() {
-    if (isNew || window.confirm('Eliminare questo episodio?')) {
+  function remove() {
+    if (window.confirm('Eliminare questo episodio?')) {
       void deleteEpisode(uid, episodeId)
+      close()
     }
-    close()
   }
 
   async function addCustom(field: keyof Profile, select: (value: string) => void) {
@@ -97,12 +107,12 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     <>
       <div
         className={`backdrop${closing ? '' : ' is-open'}`}
-        onClick={cancel}
+        onClick={() => close(true)}
         aria-hidden="true"
       />
       <div className={`sheet${closing ? '' : ' is-open'}`} role="dialog" aria-label="Episodio">
         <div className="grabber" />
-        <span className="saved-badge">
+        <span className={`saved-badge${isNew ? ' is-new' : ''}`}>
           <span className="tick" aria-hidden="true">
             {isNew ? '✓' : '✎'}
           </span>
@@ -154,11 +164,13 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
 
             <p className="stop-note">Puoi fermarti qui. Riapri l'episodio quando vuoi.</p>
 
-            {!expanded && (
-              <button type="button" className="expander" onClick={() => setExpanded(true)}>
-                Aggiungi dettagli ▾
-              </button>
-            )}
+            <button
+              type="button"
+              className="expander"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              {expanded ? 'Nascondi dettagli ▴' : 'Aggiungi dettagli ▾'}
+            </button>
 
             {expanded && (
               <div className="details">
@@ -269,10 +281,10 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
             )}
 
             <div className="sheet-actions">
-              <button type="button" className="btn-cancel" onClick={cancel}>
-                {isNew ? 'Annulla' : 'Elimina'}
+              <button type="button" className="btn-cancel" onClick={remove}>
+                Elimina
               </button>
-              <button type="button" className="btn-done" onClick={close}>
+              <button type="button" className="btn-done" onClick={() => close(true)}>
                 Fatto
               </button>
             </div>

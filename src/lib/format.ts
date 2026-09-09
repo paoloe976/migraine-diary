@@ -22,6 +22,23 @@ export function monthStats(episodes: Episode[]): { headacheDays: number; medDays
   return { headacheDays: days.size, medDays: medDays.size }
 }
 
+/** Episodio appena creato su cui non è stato messo nulla: si può scartare. */
+export function isEmptyEpisode(e: Episode): boolean {
+  return (
+    !e.severity &&
+    !e.type &&
+    !e.laterality &&
+    !e.disability &&
+    !e.end &&
+    e.notes.trim() === '' &&
+    e.meds.length === 0 &&
+    e.symptoms.length === 0 &&
+    e.painQuality.length === 0 &&
+    e.triggers.length === 0 &&
+    e.headZones.length === 0
+  )
+}
+
 export function episodeTitle(e: Episode): string {
   const d = cap(
     e.start.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }),
