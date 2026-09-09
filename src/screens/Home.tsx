@@ -40,7 +40,7 @@ export default function Home() {
         </span>
         <span>
           Ho mal di testa
-          <small>si registra subito · i dettagli dopo</small>
+          <small>registra un episodio</small>
         </span>
       </button>
 

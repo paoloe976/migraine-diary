@@ -35,6 +35,21 @@ const DISABILITY: [Disability, string][] = [
   ['niente', 'Non ci riesco'],
 ]
 
+/** L'episodio ha almeno un campo di dettaglio compilato. */
+function hasDetails(e: Episode): boolean {
+  return Boolean(
+    e.type ||
+      e.laterality ||
+      e.disability ||
+      e.notes.trim() ||
+      e.meds.length ||
+      e.symptoms.length ||
+      e.painQuality.length ||
+      e.triggers.length ||
+      e.headZones.length,
+  )
+}
+
 interface Props {
   uid: string
   episodeId: string
@@ -45,7 +60,7 @@ interface Props {
 export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
   const [draft, setDraft] = useState<Episode | null>(null)
   const [profile, setProfile] = useState<Profile>({ types: DEFAULT_TYPES, meds: [], triggers: [] })
-  const [expanded, setExpanded] = useState(!isNew)
+  const [expanded, setExpanded] = useState(false)
   const [closing, setClosing] = useState(false)
   const dialog = useDialog()
 
@@ -162,7 +177,11 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
               className="expander"
               onClick={() => setExpanded((v) => !v)}
             >
-              {expanded ? 'Nascondi dettagli ▴' : 'Aggiungi dettagli ▾'}
+              {expanded
+                ? 'Nascondi dettagli ▴'
+                : hasDetails(draft)
+                  ? 'Mostra dettagli ▾'
+                  : 'Aggiungi dettagli ▾'}
             </button>
 
             {expanded && (
