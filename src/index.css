@@ -489,6 +489,74 @@ button {
   cursor: pointer;
 }
 
+/* ============ Schermate di gestione liste ============ */
+
+.back-btn {
+  display: inline-block;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 0 2px;
+}
+
+.edit-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.edit-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.el-name {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  padding: 14px 2px;
+  cursor: pointer;
+}
+
+.el-del {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.el-empty {
+  color: var(--faint);
+  font-size: 13px;
+  padding: 14px 2px;
+}
+
+.el-add {
+  margin-top: 18px;
+  width: 100%;
+  border: 1px dashed var(--hairline);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .build-note {
   margin-top: 22px;
   font-size: 12px;

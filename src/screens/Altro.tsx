@@ -31,8 +31,9 @@ export default function Altro() {
 
   const rows: Array<[string, string, string?]> = [
     ['📤', 'Esporta / stampa diario', '/stampa'],
-    ['🧩', 'Tipi di mal di testa'],
-    ['💊', 'I miei farmaci'],
+    ['🧩', 'Tipi di mal di testa', '/liste/tipi'],
+    ['💊', 'I miei farmaci', '/liste/farmaci'],
+    ['⚡', 'Cause scatenanti', '/liste/scatenanti'],
     ['💉', 'Profilassi in corso'],
     ['📋', 'Questionari clinici'],
   ]

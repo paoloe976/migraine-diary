@@ -75,9 +75,20 @@ export const DEFAULT_TYPES = [
   'Cefalea a grappolo',
 ]
 
+export const DEFAULT_TRIGGERS = [
+  'Stress',
+  'Poco sonno',
+  'Pasto saltato',
+  'Vino / alcol',
+  'Meteo',
+  'Mestruazioni',
+  'Schermi a lungo',
+  'Sforzo fisico',
+]
+
 const profileRef = (uid: string) => doc(db, 'users', uid)
 
-/** Crea il doc profilo al primo accesso, con i tipi ICHD-3 di partenza. */
+/** Crea il doc profilo al primo accesso; fa il backfill dei trigger di base. */
 export async function ensureUserDoc(u: AuthUser): Promise<void> {
   const ref = profileRef(u.uid)
   const snap = await getDoc(ref)
@@ -88,8 +99,13 @@ export async function ensureUserDoc(u: AuthUser): Promise<void> {
       createdAt: serverTimestamp(),
       types: DEFAULT_TYPES,
       meds: [],
-      triggers: [],
+      triggers: DEFAULT_TRIGGERS,
     })
+    return
+  }
+  const d = snap.data()
+  if (!Array.isArray(d.triggers) || d.triggers.length === 0) {
+    await updateDoc(ref, { triggers: DEFAULT_TRIGGERS })
   }
 }
 
@@ -99,7 +115,7 @@ export function subscribeProfile(uid: string, cb: (p: Profile) => void): Unsubsc
     cb({
       types: d.types ?? DEFAULT_TYPES,
       meds: d.meds ?? [],
-      triggers: d.triggers ?? [],
+      triggers: d.triggers ?? DEFAULT_TRIGGERS,
     })
   })
 }
@@ -110,6 +126,15 @@ export function addToProfileList(
   value: string,
 ): Promise<void> {
   return updateDoc(profileRef(uid), { [field]: arrayUnion(value) })
+}
+
+/** Sovrascrive l'intera lista (per le schermate di gestione). */
+export function setProfileList(
+  uid: string,
+  field: keyof Profile,
+  values: string[],
+): Promise<void> {
+  return updateDoc(profileRef(uid), { [field]: values })
 }
 
 // ========================= Episodi ==========================

@@ -14,16 +14,6 @@ import HeadMap, { lateralityFromZones, locationSummary } from '../components/Hea
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
-const DEFAULT_TRIGGERS = [
-  'Stress',
-  'Poco sonno',
-  'Pasto saltato',
-  'Vino / alcol',
-  'Meteo',
-  'Mestruazioni',
-  'Schermi a lungo',
-  'Sforzo fisico',
-]
 const PROMPT_MESSAGE: Record<keyof Profile, string> = {
   types: 'Nuovo tipo di mal di testa',
   meds: 'Nome del farmaco',
@@ -90,10 +80,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     select(value)
   }
 
-  const triggerOptions = [
-    ...DEFAULT_TRIGGERS,
-    ...profile.triggers.filter((t) => !DEFAULT_TRIGGERS.includes(t)),
-  ]
+  const triggerOptions = profile.triggers
 
   return (
     <>

@@ -8,6 +8,7 @@ import Calendario from './screens/Calendario'
 import Andamento from './screens/Andamento'
 import Altro from './screens/Altro'
 import Stampa from './screens/Stampa'
+import Liste from './screens/Liste'
 
 function Gate() {
   const { user, loading } = useAuth()
@@ -21,6 +22,7 @@ function Gate() {
   return (
     <Routes>
       <Route path="/stampa" element={<Stampa />} />
+      <Route path="/liste/:kind" element={<Liste />} />
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
         <Route path="/calendario" element={<Calendario />} />
