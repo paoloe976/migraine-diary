@@ -111,6 +111,19 @@ export default function Stampa() {
     }
   }, [period, now])
 
+  // sfondo bianco garantito (inline batte il foglio di stile del tema scuro)
+  useEffect(() => {
+    const root = document.documentElement
+    const prevRoot = root.style.background
+    const prevBody = document.body.style.background
+    root.style.background = '#fff'
+    document.body.style.background = '#fff'
+    return () => {
+      root.style.background = prevRoot
+      document.body.style.background = prevBody
+    }
+  }, [])
+
   return (
     <div className="print-page">
       <div className="report-toolbar">

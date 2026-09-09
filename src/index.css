@@ -1854,12 +1854,18 @@ button {
   .print-page {
     padding: 0;
   }
+  /* niente margine di pagina: il foglio bianco copre tutta la pagina,
+     il "margine documento" è il padding del foglio */
+  @page {
+    size: A4;
+    margin: 0;
+  }
   .paper {
     max-width: none;
     margin: 0;
     box-shadow: none;
     border-radius: 0;
-    padding: 0;
+    padding: 14mm 13mm;
     font-size: 9.5pt;
   }
   .report-section {
@@ -1880,9 +1886,5 @@ button {
   }
   .report-table tr {
     break-inside: avoid;
-  }
-  @page {
-    size: A4;
-    margin: 15mm 14mm;
   }
 }
