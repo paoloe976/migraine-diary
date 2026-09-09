@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA: ogni rotta serve index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
