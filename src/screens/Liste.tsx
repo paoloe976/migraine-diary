@@ -5,24 +5,27 @@ import { useDialog } from '../components/Dialog'
 import { setProfileList, subscribeProfile } from '../lib/data'
 import type { Profile } from '../lib/types'
 
+const COMMON_NOTE =
+  'Tocca una voce per rinominarla, la × per eliminarla. Rinominare o eliminare non modifica gli episodi già registrati con quel nome.'
+
 const KINDS = {
   tipi: {
     field: 'types' as const,
     title: 'Tipi di mal di testa',
     add: 'Nuovo tipo',
-    note: 'Rinominali in base a cosa ti ha detto il neurologo. Rinominare non tocca gli episodi già registrati con il nome vecchio.',
+    note: `Adattali a cosa ti ha detto il neurologo. ${COMMON_NOTE}`,
   },
   farmaci: {
     field: 'meds' as const,
     title: 'I miei farmaci',
     add: 'Nuovo farmaco',
-    note: 'Compaiono qui man mano che li usi negli episodi.',
+    note: `Compaiono qui man mano che li usi negli episodi. ${COMMON_NOTE}`,
   },
   scatenanti: {
     field: 'triggers' as const,
     title: 'Cause scatenanti',
     add: 'Nuova causa',
-    note: null as string | null,
+    note: COMMON_NOTE,
   },
 }
 
