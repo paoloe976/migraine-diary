@@ -1,5 +1,5 @@
 export type Severity = 'lieve' | 'moderato' | 'severo'
-export type Disability = 'tutto' | 'fatica' | 'niente'
+export type Disability = 'lieve' | 'moderata' | 'elevata'
 export type Laterality = 'sx' | 'dx' | 'bilaterale'
 
 /** Un episodio / attacco. L'unità del diario. */

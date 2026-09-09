@@ -29,10 +29,10 @@ const PROMPT_MESSAGE: Record<keyof Profile, string> = {
   meds: 'Nome del farmaco',
   triggers: 'Nuova causa scatenante',
 }
-const DISABILITY: [Disability, string][] = [
-  ['tutto', 'Faccio tutto'],
-  ['fatica', 'A fatica'],
-  ['niente', 'Non ci riesco'],
+const DISABILITY: Array<[key: Disability, label: string, support: string]> = [
+  ['lieve', 'Lieve', 'Svolgo normalmente le mie attività'],
+  ['moderata', 'Moderata', 'Svolgo a fatica le mie attività'],
+  ['elevata', 'Elevata', 'Non sono in grado di svolgere le mie attività'],
 ]
 
 
@@ -226,7 +226,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                       patch({ headZones: zones, laterality: lateralityFromZones(zones) })
                     }
                   />
-                  <p className="head-readout">
+                  <p className="field-support">
                     {draft.headZones.length === 0
                       ? 'Nessuna zona selezionata'
                       : locationSummary(draft.headZones)}
@@ -248,6 +248,11 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                       </button>
                     ))}
                   </div>
+                  {draft.disability && (
+                    <p className="field-support">
+                      {DISABILITY.find(([k]) => k === draft.disability)?.[2]}
+                    </p>
+                  )}
                 </Field>
 
                 <Field
