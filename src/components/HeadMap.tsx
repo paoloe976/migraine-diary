@@ -12,20 +12,23 @@ interface Zone {
 }
 
 /**
- * Vista frontale (patiente di fronte: la sua destra è alla nostra sinistra)
- * e vista posteriore (la sua destra è alla nostra sinistra anche di spalle).
+ * Lateralità dal punto di vista della PERSONA.
+ * - Vista frontale: la sua destra è alla nostra sinistra (come uno specchio).
+ * - Vista posteriore: la sua destra è alla nostra destra.
  */
 const ZONES: readonly Zone[] = [
-  { name: 'fronte', side: 'centro', cx: 72, cy: 52, rx: 32, ry: 14 },
-  { name: 'tempia destra', side: 'dx', cx: 40, cy: 76, rx: 11, ry: 15 },
-  { name: 'tempia sinistra', side: 'sx', cx: 104, cy: 76, rx: 11, ry: 15 },
-  { name: 'zona occhio destra', side: 'dx', cx: 56, cy: 92, rx: 12, ry: 8 },
-  { name: 'zona occhio sinistra', side: 'sx', cx: 88, cy: 92, rx: 12, ry: 8 },
-  { name: 'vertice', side: 'centro', cx: 228, cy: 50, rx: 32, ry: 14 },
-  { name: 'parietale destra', side: 'dx', cx: 198, cy: 80, rx: 13, ry: 17 },
-  { name: 'parietale sinistra', side: 'sx', cx: 258, cy: 80, rx: 13, ry: 17 },
-  { name: 'occipite', side: 'centro', cx: 228, cy: 116, rx: 27, ry: 15 },
-  { name: 'nuca', side: 'centro', cx: 228, cy: 146, rx: 18, ry: 11 },
+  // --- fronte (testa centrata su x = 72) ---
+  { name: 'fronte', side: 'centro', cx: 72, cy: 45, rx: 30, ry: 13 },
+  { name: 'tempia destra', side: 'dx', cx: 39, cy: 69, rx: 10, ry: 15 },
+  { name: 'tempia sinistra', side: 'sx', cx: 105, cy: 69, rx: 10, ry: 15 },
+  { name: 'zona occhio destra', side: 'dx', cx: 56, cy: 87, rx: 11, ry: 8 },
+  { name: 'zona occhio sinistra', side: 'sx', cx: 88, cy: 87, rx: 11, ry: 8 },
+  // --- retro (testa centrata su x = 228) ---
+  { name: 'vertice', side: 'centro', cx: 228, cy: 45, rx: 30, ry: 13 },
+  { name: 'parietale sinistra', side: 'sx', cx: 199, cy: 76, rx: 13, ry: 17 },
+  { name: 'parietale destra', side: 'dx', cx: 257, cy: 76, rx: 13, ry: 17 },
+  { name: 'occipite', side: 'centro', cx: 228, cy: 112, rx: 26, ry: 15 },
+  { name: 'nuca', side: 'centro', cx: 228, cy: 143, rx: 18, ry: 11 },
 ]
 
 const SIDE_BY_NAME = new Map(ZONES.map((z) => [z.name, z.side]))
@@ -49,6 +52,16 @@ export const LATERALITY_LABEL: Record<Laterality, string> = {
 const SKULL_PATH =
   'M72,24 C42,24 28,48 28,86 C28,108 32,128 42,146 C50,160 60,174 72,174 C84,174 94,160 102,146 C112,128 116,108 116,86 C116,48 102,24 72,24 Z'
 
+/** Contorni del viso condivisi dalle due viste (orecchie), stile linea sottile. */
+function Ears() {
+  return (
+    <>
+      <path className="feat" d="M29,83 c-7,1 -9,9 -5,15 c2,3 6,4 8,1" />
+      <path className="feat" d="M115,83 c7,1 9,9 5,15 c-2,3 -6,4 -8,1" />
+    </>
+  )
+}
+
 export default function HeadMap({
   value,
   onChange,
@@ -65,15 +78,17 @@ export default function HeadMap({
         <path id="skull-shape" d={SKULL_PATH} />
       </defs>
 
+      {/* vista frontale */}
       <use href="#skull-shape" className="skull" />
-      <ellipse className="feat" cx="27" cy="98" rx="5" ry="9" />
-      <ellipse className="feat" cx="117" cy="98" rx="5" ry="9" />
-      <path className="feat" d="M72,100 q-4,9 -2.5,13 q2.5,2 5,0" />
+      <Ears />
+      <path className="feat" d="M72,91 q-4,13 -3,18 q3,2 6,0" />
+      <path className="feat" d="M63,128 q9,5 18,0" />
 
+      {/* vista posteriore */}
       <g transform="translate(156,0)">
         <use href="#skull-shape" className="skull" />
-        <ellipse className="feat" cx="27" cy="98" rx="5" ry="9" />
-        <ellipse className="feat" cx="117" cy="98" rx="5" ry="9" />
+        <Ears />
+        <path className="feat" d="M192,150 q36,17 72,0" />
       </g>
 
       {ZONES.map((z) => (
