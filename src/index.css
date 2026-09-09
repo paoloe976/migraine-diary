@@ -1589,6 +1589,17 @@ button {
   print-color-adjust: exact;
 }
 
+.paper-frame {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.paper-frame > thead > tr > td,
+.paper-frame > tfoot > tr > td {
+  height: 0;
+  padding: 0;
+}
+
 .paper h1 {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 20px;
@@ -1854,8 +1865,9 @@ button {
   .print-page {
     padding: 0;
   }
-  /* niente margine di pagina: il foglio bianco copre tutta la pagina,
-     il "margine documento" è il padding del foglio */
+  /* niente margine di pagina (verrebbe dipinto di scuro); il margine
+     documento è dato dai thead/tfoot vuoti di .paper-frame, ripetuti su
+     ogni pagina, + il padding orizzontale delle celle */
   @page {
     size: A4;
     margin: 0;
@@ -1865,8 +1877,19 @@ button {
     margin: 0;
     box-shadow: none;
     border-radius: 0;
-    padding: 14mm 13mm;
+    padding: 0;
     font-size: 9.5pt;
+  }
+  .paper-frame {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .paper-frame > thead > tr > td,
+  .paper-frame > tfoot > tr > td {
+    height: 14mm;
+  }
+  .paper-frame > tbody > tr > td {
+    padding: 0 13mm;
   }
   .report-section {
     margin-top: 16px;

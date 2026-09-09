@@ -148,6 +148,22 @@ export default function Stampa() {
       </div>
 
       <article className="paper">
+       {/* thead/tfoot vuoti = margine sup/inf ripetuto su ogni pagina in stampa
+           (l'unica via affidabile con @page margin:0) */}
+       <table className="paper-frame">
+        <thead>
+          <tr>
+            <td />
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <td />
+          </tr>
+        </tfoot>
+        <tbody>
+         <tr>
+          <td>
         <header className="paper-head">
           <div>
             <h1>Diario dell'emicrania</h1>
@@ -328,6 +344,10 @@ export default function Stampa() {
         <footer className="paper-foot">
           Dati inseriti dal paziente. Non è un dispositivo medico.
         </footer>
+          </td>
+         </tr>
+        </tbody>
+       </table>
       </article>
     </div>
   )
