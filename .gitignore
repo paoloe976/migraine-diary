@@ -8,6 +8,9 @@ dist-ssr
 .env.*
 !.env.example
 
+# Scratch: file di lavoro locali che non devono finire nel repo
+tmp/
+
 # Editor / OS
 .DS_Store
 Thumbs.db
