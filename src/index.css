@@ -2094,9 +2094,10 @@ button {
   color: var(--ink);
   border-radius: 8px;
   box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.5);
-  padding: clamp(22px, 5vw, 44px);
+  padding: clamp(16px, 4vw, 44px);
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: break-word;
   /* i colori del report (pallini calendario, barre, avvisi) devono stampare */
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -2104,6 +2105,7 @@ button {
 
 .paper-frame {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
 }
 
@@ -2111,6 +2113,10 @@ button {
 .paper-frame > tfoot > tr > td {
   height: 0;
   padding: 0;
+}
+
+.paper-frame > tbody > tr > td {
+  overflow-wrap: break-word;
 }
 
 .paper h1 {
@@ -2155,6 +2161,16 @@ button {
   font-size: 12px;
 }
 
+@media screen and (max-width: 460px) {
+  .paper-head {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .paper-period {
+    text-align: left;
+  }
+}
+
 .paper-period span {
   color: var(--ink-faint);
   font-size: 11px;
@@ -2162,7 +2178,7 @@ button {
 
 .report-kpis {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 12px;
   margin-bottom: 10px;
 }
@@ -2302,8 +2318,14 @@ button {
 
 .cal-months {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 16px 14px;
+}
+
+@media (min-width: 520px) {
+  .cal-months {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .rc-month h3 {
@@ -2481,5 +2503,11 @@ button {
   }
   .report-table tr {
     break-inside: avoid;
+  }
+  .cal-months {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .report-kpis {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
