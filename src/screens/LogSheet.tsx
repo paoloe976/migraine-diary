@@ -10,7 +10,7 @@ import {
 import type { Disability, Episode, EpisodePatch, Profile, Severity } from '../lib/types'
 import { SEVERITY_LABEL, toDateInput, toTimeInput, withDate, withTime } from '../lib/format'
 import { useDialog } from '../components/Dialog'
-import HeadMap, { LATERALITY_LABEL, lateralityFromZones } from '../components/HeadMap'
+import HeadMap, { lateralityFromZones, locationSummary } from '../components/HeadMap'
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
@@ -223,19 +223,9 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                     }
                   />
                   <p className="head-readout">
-                    {draft.headZones.length === 0 ? (
-                      'Nessuna zona selezionata'
-                    ) : (
-                      <>
-                        {draft.headZones.join(', ')}
-                        {draft.laterality && (
-                          <>
-                            {' · '}
-                            <b>{LATERALITY_LABEL[draft.laterality]}</b>
-                          </>
-                        )}
-                      </>
-                    )}
+                    {draft.headZones.length === 0
+                      ? 'Nessuna zona selezionata'
+                      : locationSummary(draft.headZones)}
                   </p>
                 </Field>
 

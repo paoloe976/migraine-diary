@@ -12,18 +12,19 @@ interface Zone {
 }
 
 /**
- * Lateralità dal punto di vista della PERSONA.
- * - Vista frontale: la sua destra è alla nostra sinistra (come uno specchio).
- * - Vista posteriore: la sua destra è alla nostra destra.
+ * Vista provvisoria fronte + retro. Nella Fase 2 diventa un profilo unico
+ * con toggle Sinistro/Destro (vedi memoria/prodotto).
+ *
+ * Lateralità dal punto di vista della PERSONA:
+ * - fronte: la sua destra è alla nostra sinistra (specchio)
+ * - retro: la sua destra è alla nostra destra
  */
 const ZONES: readonly Zone[] = [
-  // --- fronte (testa centrata su x = 72) ---
   { name: 'fronte', side: 'centro', cx: 72, cy: 44, rx: 30, ry: 12 },
   { name: 'tempia destra', side: 'dx', cx: 40, cy: 64, rx: 10, ry: 13 },
   { name: 'tempia sinistra', side: 'sx', cx: 104, cy: 64, rx: 10, ry: 13 },
-  { name: 'zona occhio destra', side: 'dx', cx: 56, cy: 82, rx: 11, ry: 8 },
-  { name: 'zona occhio sinistra', side: 'sx', cx: 88, cy: 82, rx: 11, ry: 8 },
-  // --- retro (testa centrata su x = 228) ---
+  { name: 'orbita destra', side: 'dx', cx: 56, cy: 82, rx: 11, ry: 8 },
+  { name: 'orbita sinistra', side: 'sx', cx: 88, cy: 82, rx: 11, ry: 8 },
   { name: 'vertice', side: 'centro', cx: 228, cy: 44, rx: 30, ry: 12 },
   { name: 'parietale sinistra', side: 'sx', cx: 200, cy: 70, rx: 12, ry: 15 },
   { name: 'parietale destra', side: 'dx', cx: 256, cy: 70, rx: 12, ry: 15 },
@@ -31,24 +32,49 @@ const ZONES: readonly Zone[] = [
   { name: 'nuca', side: 'centro', cx: 228, cy: 124, rx: 17, ry: 10 },
 ]
 
-const SIDE_BY_NAME = new Map(ZONES.map((z) => [z.name, z.side]))
+// --- traduzione zone -> testo ---
 
-/** Riassunto della lateralità a partire dalle zone toccate (per la stampa). */
-export function lateralityFromZones(zoneNames: string[]): Laterality | null {
-  if (zoneNames.length === 0) return null
-  const sides = new Set(zoneNames.map((n) => SIDE_BY_NAME.get(n)))
-  if (sides.has('dx') && sides.has('sx')) return 'bilaterale'
-  if (sides.has('dx')) return 'dx'
-  if (sides.has('sx')) return 'sx'
-  return 'mediana'
+const LATERAL: Array<[suffix: string, side: 'sx' | 'dx']> = [
+  [' sinistra', 'sx'],
+  [' destra', 'dx'],
+]
+
+function parseZone(zone: string): { region: string; side: 'sx' | 'dx' | null } {
+  for (const [suffix, side] of LATERAL) {
+    if (zone.endsWith(suffix)) return { region: zone.slice(0, -suffix.length), side }
+  }
+  return { region: zone, side: null }
 }
 
-export const LATERALITY_LABEL: Record<string, string> = {
-  sx: 'lato sinistro',
-  dx: 'lato destro',
-  bilaterale: 'bilaterale',
-  mediana: 'mediana',
-  diffusa: 'diffuso', // valore legacy
+function italianList(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? ''
+  return `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`
+}
+
+/** Lato memorizzato (per statistiche/stampa): null se nessuna zona laterale. */
+export function lateralityFromZones(zoneNames: string[]): Laterality | null {
+  const sides = new Set(zoneNames.map((z) => parseZone(z).side).filter(Boolean))
+  if (sides.has('sx') && sides.has('dx')) return 'bilaterale'
+  if (sides.has('sx')) return 'sx'
+  if (sides.has('dx')) return 'dx'
+  return null
+}
+
+/** Riassunto leggibile: "temporale e orbitale, sinistra" / "occipite". */
+export function locationSummary(zoneNames: string[]): string {
+  if (zoneNames.length === 0) return ''
+  const parsed = zoneNames.map(parseZone)
+  const regions = [...new Set(parsed.map((p) => p.region))]
+  const laterality = lateralityFromZones(zoneNames)
+  const suffix =
+    laterality === 'bilaterale'
+      ? ', bilaterale'
+      : laterality === 'sx'
+        ? ', sinistra'
+        : laterality === 'dx'
+          ? ', destra'
+          : ''
+  return italianList(regions) + suffix
 }
 
 const SKULL_PATH =
@@ -114,7 +140,6 @@ export default function HeadMap({
         </ellipse>
       ))}
 
-      {/* orientamento: lato della PERSONA */}
       <text className="hlabel" x="13" y="86">DX</text>
       <text className="hlabel" x="131" y="86">SX</text>
       <text className="hlabel" x="169" y="86">SX</text>
