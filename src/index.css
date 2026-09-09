@@ -1050,9 +1050,13 @@ button {
   stroke-width: 2;
 }
 
-/* niente cornice rettangolare sull'ellisse: il focus si vede sul bordo */
-.headmap .zone:focus-visible {
+/* niente cornice rettangolare sull'ellisse (nemmeno dopo il click, dove
+   scatta :focus ma non :focus-visible); il focus da tastiera va sul bordo */
+.headmap :focus {
   outline: none;
+}
+
+.headmap .zone:focus-visible {
   stroke: var(--accent);
   stroke-width: 2;
 }
