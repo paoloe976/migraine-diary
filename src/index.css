@@ -681,7 +681,7 @@ button {
   transform: translate(-50%, 101%);
   background: var(--surface);
   border-radius: 26px 26px 0 0;
-  padding: 10px 20px calc(20px + env(safe-area-inset-bottom));
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom));
   max-height: 92%;
   overflow-y: auto;
   z-index: 41;
@@ -693,12 +693,30 @@ button {
   transform: translate(-50%, 0);
 }
 
+/* testata sempre visibile mentre si scorrono i dettagli */
+.sheet-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0 -20px;
+  padding: 10px 20px 10px;
+  background: var(--surface);
+  box-shadow: 0 10px 12px -10px rgba(0, 0, 0, 0.45);
+}
+
+.sheet-head-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .grabber {
   width: 38px;
   height: 4px;
   border-radius: 999px;
   background: var(--raised);
-  margin: 6px auto 14px;
+  margin: 4px auto 12px;
 }
 
 .sheet-loading {
@@ -953,9 +971,7 @@ button {
 /* ============ Sheet: X di chiusura ============ */
 
 .sheet-x {
-  position: absolute;
-  top: 12px;
-  right: 14px;
+  flex: none;
   width: 32px;
   height: 32px;
   border-radius: 10px;
@@ -964,7 +980,6 @@ button {
   color: var(--muted);
   font-size: 15px;
   cursor: pointer;
-  z-index: 1;
 }
 
 /* ============ Mappa della testa ============ */

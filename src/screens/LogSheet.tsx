@@ -102,16 +102,20 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
         aria-hidden="true"
       />
       <div className={`sheet${closing ? '' : ' is-open'}`} role="dialog" aria-label="Episodio">
-        <button type="button" className="sheet-x" onClick={close} aria-label="Chiudi">
-          ✕
-        </button>
-        <div className="grabber" />
-        <span className={`saved-badge${isNew ? ' is-new' : ''}`}>
-          <span className="tick" aria-hidden="true">
-            {isNew ? '✓' : '✎'}
-          </span>
-          {isNew ? 'Episodio registrato' : 'Modifica episodio'}
-        </span>
+        <div className="sheet-head">
+          <div className="grabber" />
+          <div className="sheet-head-row">
+            <span className={`saved-badge${isNew ? ' is-new' : ''}`}>
+              <span className="tick" aria-hidden="true">
+                {isNew ? '✓' : '✎'}
+              </span>
+              {isNew ? 'Episodio registrato' : 'Modifica episodio'}
+            </span>
+            <button type="button" className="sheet-x" onClick={close} aria-label="Chiudi">
+              ✕
+            </button>
+          </div>
+        </div>
 
         {!draft ? (
           <p className="sheet-loading">…</p>
