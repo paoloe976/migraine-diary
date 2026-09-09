@@ -11,8 +11,10 @@ interface OpenLog {
 }
 
 export interface ShellContext {
-  /** Apre l'imbuto: senza id crea un episodio nuovo, con id lo modifica. */
+  /** Apre l'imbuto: senza id crea un episodio nuovo (ora), con id lo modifica. */
   openLog: (episodeId?: string) => void
+  /** Crea un episodio nuovo con una data specifica (dal calendario). */
+  openLogForDate: (date: Date) => void
 }
 
 export const useShell = (): ShellContext => useOutletContext<ShellContext>()
@@ -30,10 +32,20 @@ export default function AppShell() {
     [user],
   )
 
+  const openLogForDate = useCallback(
+    (date: Date) => {
+      if (!user) return
+      const at = new Date(date)
+      at.setHours(12, 0, 0, 0)
+      setLog({ id: createEpisode(user.uid, at), isNew: true })
+    },
+    [user],
+  )
+
   return (
     <div className="app">
       <main className="app-main">
-        <Outlet context={{ openLog } satisfies ShellContext} />
+        <Outlet context={{ openLog, openLogForDate } satisfies ShellContext} />
       </main>
       <TabBar />
       {log && user && (

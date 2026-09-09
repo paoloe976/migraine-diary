@@ -442,6 +442,221 @@ button {
   color: var(--faint);
 }
 
+/* ============ Calendario ============ */
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 12px;
+}
+
+.cal-head b {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cal-head button {
+  border: none;
+  background: var(--surface-2);
+  color: var(--muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.cal-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.cal-stats b {
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.weekdays span {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--faint);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding-bottom: 4px;
+}
+
+.day {
+  aspect-ratio: 1;
+  border: 1px solid transparent;
+  background: var(--surface);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.day.empty {
+  background: none;
+  cursor: default;
+}
+
+.day.today {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.day.has-episode {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.day.is-sel {
+  border-color: var(--text);
+}
+
+.day .marks {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+}
+
+.day .marks i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.m-none {
+  background: var(--faint);
+}
+.m-lieve {
+  background: var(--lieve);
+}
+.m-moderato {
+  background: var(--moderato);
+}
+.m-severo {
+  background: var(--severo);
+}
+.m-med {
+  background: transparent;
+  box-shadow: 0 0 0 1.5px var(--faint) inset;
+  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+}
+
+.day-detail {
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  padding: 15px;
+}
+
+.day-detail h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.d-empty {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.d-ep {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.d-ep-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.d-ep-main b {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.d-ep-main p {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.d-ep .chev {
+  color: var(--faint);
+  font-size: 17px;
+}
+
+.d-add {
+  margin-top: 13px;
+  width: 100%;
+  border: 1px dashed var(--hairline);
+  background: none;
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 11px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 18px;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.cal-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cal-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
 /* ============ Bottom sheet (imbuto) ============ */
 
 .backdrop {
@@ -754,11 +969,54 @@ button {
 
 /* ============ Mappa della testa ============ */
 
+.headmap-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.side-toggle {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.side-toggle button {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.side-toggle button.is-on {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.side-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 .headmap {
   width: 100%;
   height: auto;
   display: block;
-  max-width: 320px;
+  max-width: 250px;
 }
 
 .headmap .skull {
