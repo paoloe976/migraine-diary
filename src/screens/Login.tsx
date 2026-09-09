@@ -17,10 +17,16 @@ function errorMessage(e: unknown): string {
     case 'auth/popup-closed-by-user':
     case 'auth/cancelled-popup-request':
       return ''
+    case 'auth/popup-blocked':
+      return 'Il browser ha bloccato la finestra di accesso. Consenti i popup e riprova.'
+    case 'auth/unauthorized-domain':
+      return 'Questo indirizzo non è tra i domini autorizzati in Firebase (usa localhost o aggiungilo nella console).'
+    case 'auth/operation-not-allowed':
+      return 'Metodo di accesso non abilitato nella console Firebase.'
     case 'auth/network-request-failed':
       return 'Nessuna connessione.'
     default:
-      return 'Qualcosa è andato storto. Riprova.'
+      return code ? `Errore: ${code}` : 'Qualcosa è andato storto. Riprova.'
   }
 }
 
@@ -37,6 +43,7 @@ export default function Login() {
     try {
       await action()
     } catch (e) {
+      console.error('[auth]', e)
       setError(errorMessage(e))
     } finally {
       setBusy(false)
