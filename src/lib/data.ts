@@ -38,7 +38,14 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { auth, db } from './firebase'
-import type { Episode, EpisodePatch, Profile, Prophylaxis, ProphylaxisPatch } from './types'
+import type {
+  Episode,
+  EpisodePatch,
+  Profile,
+  Prophylaxis,
+  ProphylaxisPatch,
+  QuestionnaireEntry,
+} from './types'
 
 // ============================ Auth ============================
 
@@ -320,4 +327,49 @@ export function subscribeProphylaxis(
   cb: (items: Prophylaxis[]) => void,
 ): Unsubscribe {
   return onSnapshot(prophylaxisCol(uid), (s) => cb(s.docs.map(toProphylaxis)))
+}
+
+// ========================= Questionari ==========================
+
+const questionnairesCol = (uid: string) => collection(db, 'users', uid, 'questionnaires')
+const questionnaireRef = (uid: string, id: string) =>
+  doc(db, 'users', uid, 'questionnaires', id)
+
+function toQuestionnaire(snap: QueryDocumentSnapshot<DocumentData>): QuestionnaireEntry {
+  const d = snap.data()
+  return {
+    id: snap.id,
+    kind: d.kind,
+    date: toDate(d.date) ?? new Date(),
+    answers: d.answers ?? {},
+    createdAt: toDate(d.createdAt),
+  }
+}
+
+export function saveQuestionnaire(
+  uid: string,
+  kind: QuestionnaireEntry['kind'],
+  answers: Record<string, number | null>,
+  date: Date = new Date(),
+): string {
+  const ref = doc(questionnairesCol(uid))
+  void setDoc(ref, {
+    kind,
+    date: Timestamp.fromDate(date),
+    answers,
+    createdAt: serverTimestamp(),
+  })
+  return ref.id
+}
+
+export const deleteQuestionnaire = (uid: string, id: string): Promise<void> =>
+  deleteDoc(questionnaireRef(uid, id))
+
+export function subscribeQuestionnaires(
+  uid: string,
+  cb: (items: QuestionnaireEntry[]) => void,
+): Unsubscribe {
+  return onSnapshot(questionnairesCol(uid), (s) =>
+    cb(s.docs.map(toQuestionnaire).sort((a, b) => b.date.getTime() - a.date.getTime())),
+  )
 }

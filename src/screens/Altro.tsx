@@ -35,7 +35,7 @@ export default function Altro() {
     ['💊', 'I miei farmaci', '/liste/farmaci'],
     ['⚡', 'Cause scatenanti', '/liste/scatenanti'],
     ['💉', 'Profilassi in corso', '/profilassi'],
-    ['📋', 'Questionari clinici'],
+    ['📋', 'Questionari clinici', '/questionari'],
   ]
 
   return (

@@ -10,6 +10,9 @@ import Altro from './screens/Altro'
 import Stampa from './screens/Stampa'
 import Liste from './screens/Liste'
 import Profilassi from './screens/Profilassi'
+import Questionari from './screens/Questionari'
+import QuestionarioForm from './screens/QuestionarioForm'
+import QuestionarioStorico from './screens/QuestionarioStorico'
 import PlainLayout from './components/PlainLayout'
 
 function Gate() {
@@ -27,6 +30,9 @@ function Gate() {
       <Route element={<PlainLayout />}>
         <Route path="/liste/:kind" element={<Liste />} />
         <Route path="/profilassi" element={<Profilassi />} />
+        <Route path="/questionari" element={<Questionari />} />
+        <Route path="/questionari/:kind" element={<QuestionarioForm />} />
+        <Route path="/questionari/:kind/storico" element={<QuestionarioStorico />} />
       </Route>
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />

@@ -56,3 +56,15 @@ export interface Prophylaxis {
 }
 
 export type ProphylaxisPatch = Partial<Omit<Prophylaxis, 'id' | 'createdAt' | 'updatedAt'>>
+
+export type QKind = 'midas' | 'hit6' | 'headwork'
+
+/** Una compilazione salvata di un questionario. */
+export interface QuestionnaireEntry {
+  id: string
+  kind: QKind
+  date: Date
+  /** risposte grezze, chiave = id item (per HEADWORK anche `worked`: 0|1) */
+  answers: Record<string, number | null>
+  createdAt: Date | null
+}

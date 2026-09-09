@@ -5,8 +5,10 @@ import {
   getEarliestEpisodeDate,
   subscribeEpisodesInRange,
   subscribeProphylaxis,
+  subscribeQuestionnaires,
 } from '../lib/data'
-import type { Episode, Prophylaxis, Severity } from '../lib/types'
+import type { Episode, Prophylaxis, QuestionnaireEntry, Severity } from '../lib/types'
+import { QUESTIONNAIRES } from '../lib/questionnaires'
 import {
   MED_EFFICACY_LABEL,
   SEVERITY_LABEL,
@@ -197,6 +199,7 @@ export default function Stampa() {
   const [showCalendar, setShowCalendar] = useState(true)
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [prophylaxis, setProphylaxis] = useState<Prophylaxis[]>([])
+  const [questionnaires, setQuestionnaires] = useState<QuestionnaireEntry[]>([])
 
   const rangeStart = useMemo(
     () => new Date(from.getFullYear(), from.getMonth(), 1),
@@ -212,6 +215,11 @@ export default function Stampa() {
   useEffect(() => {
     if (!user) return
     return subscribeProphylaxis(user.uid, setProphylaxis)
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    return subscribeQuestionnaires(user.uid, setQuestionnaires)
   }, [user])
 
   useEffect(() => {
@@ -396,6 +404,27 @@ export default function Stampa() {
                       ' · fasce = periodi di profilassi'}
                   </p>
                 </section>
+
+                {(['midas', 'hit6', 'headwork'] as const).some((k) =>
+                  questionnaires.some((q) => q.kind === k),
+                ) && (
+                  <section className="report-section report-tallies">
+                    <div>
+                      <h3>Questionari (ultima compilazione)</h3>
+                      <p>
+                        {(['midas', 'hit6', 'headwork'] as const)
+                          .map((k) => {
+                            const last = questionnaires.find((q) => q.kind === k)
+                            if (!last) return null
+                            const s = QUESTIONNAIRES[k].score(last.answers)
+                            return `${QUESTIONNAIRES[k].title}: ${s ? s.label : 'incompleto'} (${last.date.toLocaleDateString('it-IT')})`
+                          })
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </p>
+                    </div>
+                  </section>
+                )}
 
                 {prophylaxis.length > 0 && (
                   <section className="report-section report-tallies">
