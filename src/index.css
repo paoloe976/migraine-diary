@@ -128,8 +128,8 @@ button {
 }
 
 .tabbar .ic {
-  font-size: 19px;
-  line-height: 1;
+  width: 22px;
+  height: 22px;
 }
 
 /* ============ Login ============ */
@@ -655,6 +655,204 @@ button {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+}
+
+/* ============ Andamento ============ */
+
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  padding: 16px 15px 14px;
+  margin-top: 16px;
+}
+
+.chart-card h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chart-cap {
+  margin: 2px 0 10px;
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+.bar-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.bar-chart .grid {
+  stroke: var(--hairline);
+}
+
+.bar-chart .axis {
+  fill: var(--faint);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 9.5px;
+}
+
+.bar-chart .bar-slot {
+  cursor: pointer;
+}
+
+.bar-chart .bar {
+  fill: color-mix(in srgb, var(--accent) 55%, var(--surface-2));
+}
+
+.bar-chart .bar.is-current {
+  fill: var(--accent);
+}
+
+.bar-chart .bar.is-on {
+  fill: var(--accent);
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+
+.bar-chart .bar-value {
+  fill: var(--muted);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.bar-chart .bar-slot:focus-visible {
+  outline: none;
+}
+
+.bar-chart .bar-slot:focus-visible .bar {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* drill-down */
+
+.drill {
+  margin-top: 14px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 12px;
+}
+
+.drill h3 {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Bricolage Grotesque', sans-serif;
+}
+
+.drill-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.drill-h {
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 600;
+}
+
+.drill-list ul {
+  list-style: none;
+  margin: 7px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drill-list li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+}
+
+.drill-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent-dim);
+  border-radius: 7px;
+}
+
+.drill-name {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drill-list li b {
+  position: relative;
+  color: var(--text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* meter */
+
+.meter {
+  margin-top: 4px;
+}
+
+.meter-track {
+  position: relative;
+  height: 26px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 8px 0 0 8px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.meter-fill[data-level='medio'] {
+  background: var(--moderato);
+}
+
+.meter-fill[data-level='alto'] {
+  background: var(--severo);
+}
+
+.meter-mark {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--text);
+  opacity: 0.5;
+}
+
+.meter-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--faint);
+  margin-top: 5px;
+}
+
+.meter-note {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 10px 2px 2px;
 }
 
 /* ============ Bottom sheet (imbuto) ============ */

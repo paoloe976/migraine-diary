@@ -210,3 +210,16 @@ export function subscribeMonthEpisodes(
   )
   return onSnapshot(q, (s) => cb(s.docs.map(toEpisode)))
 }
+
+export function subscribeEpisodesSince(
+  uid: string,
+  since: Date,
+  cb: (episodes: Episode[]) => void,
+): Unsubscribe {
+  const q = query(
+    episodesCol(uid),
+    where('start', '>=', Timestamp.fromDate(since)),
+    orderBy('start', 'asc'),
+  )
+  return onSnapshot(q, (s) => cb(s.docs.map(toEpisode)))
+}
