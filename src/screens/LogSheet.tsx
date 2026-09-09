@@ -214,7 +214,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
 
                 <Field
                   label="Dove fa male"
-                  hint="tocca le zone — la lateralità si ricava da sola"
+                  hint="le zone tratteggiate valgono per entrambi i lati"
                 >
                   <HeadMap
                     value={draft.headZones}

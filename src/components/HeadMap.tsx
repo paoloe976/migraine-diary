@@ -15,11 +15,11 @@ interface ProfileZone {
  * (naso a DESTRA = profilo destro; per il profilo sinistro si specchia).
  */
 const ZONES: readonly ProfileZone[] = [
-  { key: 'vertice', lateral: false, cx: 76, cy: 17, rx: 22, ry: 9 },
+  { key: 'vertice', lateral: false, cx: 70, cy: 18, rx: 19, ry: 12 },
   { key: 'fronte', lateral: false, cx: 97, cy: 41, rx: 14, ry: 11 },
   { key: 'tempia', lateral: true, cx: 90, cy: 64, rx: 12, ry: 12 },
-  { key: 'orbita', lateral: true, cx: 114, cy: 72, rx: 10, ry: 8 },
-  { key: 'zigomo', lateral: true, cx: 106, cy: 99, rx: 12, ry: 10 },
+  { key: 'orbita', lateral: true, cx: 114, cy: 72, rx: 11, ry: 10 },
+  { key: 'zigomo', lateral: true, cx: 104, cy: 91, rx: 12, ry: 11 },
   { key: 'occipite', lateral: false, cx: 31, cy: 63, rx: 15, ry: 15 },
   { key: 'nuca', lateral: false, cx: 45, cy: 118, rx: 14, ry: 12 },
 ]
@@ -150,7 +150,7 @@ export default function HeadMap({
           {ZONES.map((z) => (
             <ellipse
               key={z.key}
-              className={`zone${isSelected(z) ? ' is-on' : ''}`}
+              className={`zone${z.lateral ? '' : ' zone-mid'}${isSelected(z) ? ' is-on' : ''}`}
               cx={z.cx}
               cy={z.cy}
               rx={z.rx}
