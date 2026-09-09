@@ -1040,10 +1040,6 @@ button {
   transition: fill 0.12s ease, stroke 0.12s ease;
 }
 
-.headmap .zone-mid {
-  stroke-dasharray: 3 2.5;
-}
-
 .headmap .zone:hover {
   fill: rgba(255, 255, 255, 0.09);
 }

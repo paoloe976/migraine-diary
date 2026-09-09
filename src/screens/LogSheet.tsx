@@ -212,10 +212,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                   />
                 </Field>
 
-                <Field
-                  label="Dove fa male"
-                  hint="le zone tratteggiate valgono per entrambi i lati"
-                >
+                <Field label="Dove fa male" hint="tocca le zone">
                   <HeadMap
                     value={draft.headZones}
                     onChange={(zones) =>

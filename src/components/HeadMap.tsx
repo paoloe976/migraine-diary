@@ -15,13 +15,15 @@ interface ProfileZone {
  * (naso a DESTRA = profilo destro; per il profilo sinistro si specchia).
  */
 const ZONES: readonly ProfileZone[] = [
-  { key: 'vertice', lateral: false, cx: 70, cy: 18, rx: 19, ry: 12 },
-  { key: 'fronte', lateral: false, cx: 97, cy: 41, rx: 14, ry: 11 },
-  { key: 'tempia', lateral: true, cx: 90, cy: 64, rx: 12, ry: 12 },
-  { key: 'orbita', lateral: true, cx: 114, cy: 72, rx: 11, ry: 10 },
-  { key: 'zigomo', lateral: true, cx: 104, cy: 91, rx: 12, ry: 11 },
-  { key: 'occipite', lateral: false, cx: 31, cy: 63, rx: 15, ry: 15 },
-  { key: 'nuca', lateral: false, cx: 45, cy: 118, rx: 14, ry: 12 },
+  // centrali: a cavallo del contorno (una parte sporge dal viso)
+  { key: 'vertice', lateral: false, cx: 66, cy: 8, rx: 20, ry: 12 },
+  { key: 'fronte', lateral: false, cx: 122, cy: 40, rx: 13, ry: 12 },
+  { key: 'occipite', lateral: false, cx: 13, cy: 60, rx: 15, ry: 16 },
+  { key: 'nuca', lateral: false, cx: 25, cy: 116, rx: 13, ry: 13 },
+  // laterali: dentro al viso
+  { key: 'tempia', lateral: true, cx: 91, cy: 63, rx: 12, ry: 12 },
+  { key: 'orbita', lateral: true, cx: 110, cy: 72, rx: 11, ry: 10 },
+  { key: 'zigomo', lateral: true, cx: 103, cy: 91, rx: 12, ry: 11 },
 ]
 
 const REGION_LABEL: Record<string, string> = {
@@ -140,7 +142,7 @@ export default function HeadMap({
 
       <svg
         className="headmap"
-        viewBox={`0 0 ${HEAD_W} ${HEAD_H}`}
+        viewBox={`-15 -10 ${HEAD_W + 30} ${HEAD_H + 16}`}
         role="group"
         aria-label={`Profilo ${side === 'sx' ? 'sinistro' : 'destro'}`}
       >
@@ -150,7 +152,7 @@ export default function HeadMap({
           {ZONES.map((z) => (
             <ellipse
               key={z.key}
-              className={`zone${z.lateral ? '' : ' zone-mid'}${isSelected(z) ? ' is-on' : ''}`}
+              className={`zone${isSelected(z) ? ' is-on' : ''}`}
               cx={z.cx}
               cy={z.cy}
               rx={z.rx}
