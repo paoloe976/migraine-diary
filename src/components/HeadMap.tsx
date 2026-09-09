@@ -17,13 +17,13 @@ interface ProfileZone {
 const ZONES: readonly ProfileZone[] = [
   // centrali: a cavallo del contorno (una parte sporge dal viso)
   { key: 'vertice', lateral: false, cx: 66, cy: 8, rx: 20, ry: 12 },
-  { key: 'fronte', lateral: false, cx: 122, cy: 40, rx: 13, ry: 12 },
+  { key: 'fronte', lateral: false, cx: 117, cy: 40, rx: 13, ry: 12 },
   { key: 'occipite', lateral: false, cx: 13, cy: 60, rx: 15, ry: 16 },
   { key: 'nuca', lateral: false, cx: 25, cy: 116, rx: 13, ry: 13 },
-  // laterali: dentro al viso
-  { key: 'tempia', lateral: true, cx: 91, cy: 63, rx: 12, ry: 12 },
-  { key: 'orbita', lateral: true, cx: 110, cy: 72, rx: 11, ry: 10 },
-  { key: 'zigomo', lateral: true, cx: 103, cy: 91, rx: 12, ry: 11 },
+  // laterali: dentro al viso, distanziate
+  { key: 'tempia', lateral: true, cx: 87, cy: 57, rx: 11, ry: 11 },
+  { key: 'orbita', lateral: true, cx: 111, cy: 74, rx: 9, ry: 8 },
+  { key: 'zigomo', lateral: true, cx: 99, cy: 97, rx: 11, ry: 10 },
 ]
 
 const REGION_LABEL: Record<string, string> = {
