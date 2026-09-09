@@ -1050,6 +1050,13 @@ button {
   stroke-width: 2;
 }
 
+/* niente cornice rettangolare sull'ellisse: il focus si vede sul bordo */
+.headmap .zone:focus-visible {
+  outline: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
 .headmap .hlabel {
   fill: var(--faint);
   font: 600 9px 'Hanken Grotesk', sans-serif;
