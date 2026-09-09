@@ -447,6 +447,36 @@ button {
   color: var(--faint);
 }
 
+.settings-list li.is-link {
+  padding: 0;
+}
+
+.settings-list li.is-link a {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 15px 4px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.settings-list li.is-soon {
+  color: var(--faint);
+}
+
+.soon-tag {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
 .btn-logout {
   margin-top: 22px;
   border: 1px solid var(--hairline);
@@ -1469,4 +1499,360 @@ button {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* ============ Stampa / report ============ */
+
+.print-page {
+  min-height: 100%;
+  background: var(--bg);
+  padding-bottom: 40px;
+}
+
+.report-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px calc(12px + env(safe-area-inset-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.rt-back {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rt-periods {
+  display: flex;
+  gap: 5px;
+}
+
+.rt-periods button {
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rt-periods button.is-on {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.rt-print {
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  cursor: pointer;
+}
+
+/* il "foglio": mondo chiaro, palette propria e fissa */
+.paper {
+  --ink: #1b1b1e;
+  --ink-soft: #5c5c63;
+  --ink-faint: #8a8a90;
+  --line: #d9d9de;
+  --pen: #35597a;
+  --s-lieve: #4f8a5f;
+  --s-moderato: #b07d2e;
+  --s-severo: #b0453f;
+
+  max-width: 820px;
+  margin: 20px auto;
+  background: #fff;
+  color: var(--ink);
+  border-radius: 8px;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.5);
+  padding: clamp(22px, 5vw, 44px);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.paper h1 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.paper h2 {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--ink);
+}
+
+.paper h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  margin: 0 0 3px;
+}
+
+.paper-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.paper-head p {
+  margin: 3px 0 0;
+  color: var(--ink-soft);
+}
+
+.paper-period {
+  text-align: right;
+  font-size: 12px;
+}
+
+.paper-period span {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.report-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.report-kpis > div {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.report-kpis b {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  display: block;
+  line-height: 1;
+}
+
+.report-kpis span {
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.report-kpis i {
+  display: block;
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.report-kpis .kpi-warn {
+  border-color: var(--s-severo);
+}
+
+.report-kpis .kpi-warn b {
+  color: var(--s-severo);
+}
+
+.report-flag {
+  font-size: 11.5px;
+  color: var(--s-severo);
+  margin: 4px 0 0;
+}
+
+.report-section {
+  margin-top: 22px;
+  break-inside: avoid;
+}
+
+.report-cap {
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  margin: 6px 0 0;
+}
+
+.report-bars {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+}
+
+.report-bars .rb-bar {
+  fill: var(--pen);
+}
+
+.report-bars .rb-val {
+  fill: var(--ink-soft);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.report-bars .rb-lbl {
+  fill: var(--ink-faint);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 8.5px;
+}
+
+.cal-months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 14px;
+}
+
+.rc-month h3 {
+  font-size: 11px;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+}
+
+.rc-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.rc-wd {
+  text-align: center;
+  font-size: 7.5px;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+
+.rc-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8.5px;
+  color: var(--ink-soft);
+  border-radius: 50%;
+  border: 1px solid transparent;
+}
+
+.rc-day.rc-empty {
+  visibility: hidden;
+}
+
+.rc-day.sev-none {
+  background: #e6e6ea;
+  color: var(--ink);
+}
+.rc-day.sev-lieve {
+  background: var(--s-lieve);
+  color: #fff;
+}
+.rc-day.sev-moderato {
+  background: var(--s-moderato);
+  color: #fff;
+}
+.rc-day.sev-severo {
+  background: var(--s-severo);
+  color: #fff;
+}
+
+.rc-day.rc-med {
+  border-color: var(--ink);
+}
+
+.report-tallies {
+  display: grid;
+  gap: 8px;
+}
+
+.report-tallies p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+}
+
+.report-table th {
+  text-align: left;
+  border-bottom: 1.5px solid var(--ink);
+  padding: 4px 6px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink-soft);
+}
+
+.report-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 6px;
+  vertical-align: top;
+  color: var(--ink);
+}
+
+.report-table .report-empty {
+  text-align: center;
+  color: var(--ink-faint);
+  padding: 14px;
+}
+
+.paper-foot {
+  margin-top: 26px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+@media print {
+  .report-toolbar {
+    display: none;
+  }
+  .print-page {
+    background: #fff;
+    padding: 0;
+  }
+  .paper {
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: 10pt;
+  }
+  .report-section {
+    break-inside: auto;
+  }
+  .report-calendars,
+  .report-kpis,
+  .paper-head {
+    break-inside: avoid;
+  }
+  @page {
+    size: A4;
+    margin: 15mm 14mm;
+  }
 }

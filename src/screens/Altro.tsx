@@ -1,8 +1,41 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { logout } from '../lib/data'
 
+function Row({ icon, label, to }: { icon: string; label: string; to?: string }) {
+  const body = (
+    <>
+      <span className="ic" aria-hidden="true">
+        {icon}
+      </span>
+      {label}
+      <span className="chev" aria-hidden="true">
+        {to ? '›' : ''}
+      </span>
+    </>
+  )
+  return to ? (
+    <li className="is-link">
+      <Link to={to}>{body}</Link>
+    </li>
+  ) : (
+    <li className="is-soon">
+      {body}
+      <span className="soon-tag">presto</span>
+    </li>
+  )
+}
+
 export default function Altro() {
   const { user } = useAuth()
+
+  const rows: Array<[string, string, string?]> = [
+    ['📤', 'Esporta / stampa diario', '/stampa'],
+    ['🧩', 'Tipi di mal di testa'],
+    ['💊', 'I miei farmaci'],
+    ['💉', 'Profilassi in corso'],
+    ['📋', 'Questionari clinici'],
+  ]
 
   return (
     <section className="screen">
@@ -10,61 +43,14 @@ export default function Altro() {
       <p className="screen-sub">{user?.email ?? user?.name}</p>
 
       <ul className="settings-list">
-        <li>
-          <span className="ic" aria-hidden="true">
-            🧩
-          </span>
-          Tipi di mal di testa
-          <span className="chev" aria-hidden="true">
-            ›
-          </span>
-        </li>
-        <li>
-          <span className="ic" aria-hidden="true">
-            💊
-          </span>
-          I miei farmaci
-          <span className="chev" aria-hidden="true">
-            ›
-          </span>
-        </li>
-        <li>
-          <span className="ic" aria-hidden="true">
-            💉
-          </span>
-          Profilassi in corso
-          <span className="chev" aria-hidden="true">
-            ›
-          </span>
-        </li>
-        <li>
-          <span className="ic" aria-hidden="true">
-            📋
-          </span>
-          Questionari clinici
-          <span className="chev" aria-hidden="true">
-            ›
-          </span>
-        </li>
-        <li>
-          <span className="ic" aria-hidden="true">
-            📤
-          </span>
-          Esporta / stampa diario
-          <span className="chev" aria-hidden="true">
-            ›
-          </span>
-        </li>
+        {rows.map(([icon, label, to]) => (
+          <Row key={label} icon={icon} label={label} to={to} />
+        ))}
       </ul>
 
       <button type="button" className="btn-logout" onClick={() => void logout()}>
         Esci
       </button>
-
-      <p className="build-note">
-        Fase 1: «Oggi» e registrazione episodi. Calendario, andamento, questionari,
-        profilassi e stampa arrivano nelle fasi successive.
-      </p>
     </section>
   )
 }
