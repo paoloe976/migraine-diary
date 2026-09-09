@@ -15,14 +15,7 @@ import type {
   Profile,
   Severity,
 } from '../lib/types'
-import {
-  SEVERITY_LABEL,
-  isEmptyEpisode,
-  toDateInput,
-  toTimeInput,
-  withDate,
-  withTime,
-} from '../lib/format'
+import { SEVERITY_LABEL, toDateInput, toTimeInput, withDate, withTime } from '../lib/format'
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
@@ -76,10 +69,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     void updateEpisode(uid, episodeId, p)
   }
 
-  function close(discardIfEmpty = false) {
-    if (discardIfEmpty && isNew && draft && isEmptyEpisode(draft)) {
-      void deleteEpisode(uid, episodeId)
-    }
+  function close() {
     setClosing(true)
     window.setTimeout(onClose, 200)
   }
@@ -107,7 +97,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     <>
       <div
         className={`backdrop${closing ? '' : ' is-open'}`}
-        onClick={() => close(true)}
+        onClick={close}
         aria-hidden="true"
       />
       <div className={`sheet${closing ? '' : ' is-open'}`} role="dialog" aria-label="Episodio">
@@ -284,7 +274,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
               <button type="button" className="btn-cancel" onClick={remove}>
                 Elimina
               </button>
-              <button type="button" className="btn-done" onClick={() => close(true)}>
+              <button type="button" className="btn-done" onClick={close}>
                 Fatto
               </button>
             </div>
