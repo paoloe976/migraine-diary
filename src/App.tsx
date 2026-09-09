@@ -1,11 +1,38 @@
+import { Route, Routes } from 'react-router-dom'
+import { AuthProvider, useAuth } from './lib/auth'
+import AppShell from './components/AppShell'
+import Login from './screens/Login'
+import Home from './screens/Home'
+import Calendario from './screens/Calendario'
+import Andamento from './screens/Andamento'
+import Altro from './screens/Altro'
+
+function Gate() {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return <div className="splash">Diario dell'emicrania</div>
+  }
+  if (!user) {
+    return <Login />
+  }
+  return (
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/calendario" element={<Calendario />} />
+        <Route path="/andamento" element={<Andamento />} />
+        <Route path="/altro" element={<Altro />} />
+        <Route path="*" element={<Home />} />
+      </Route>
+    </Routes>
+  )
+}
+
 export default function App() {
   return (
-    <main style={{ maxWidth: 640, margin: '0 auto', padding: '2rem 1rem' }}>
-      <h1>Diario dell'emicrania</h1>
-      <p>
-        Scheletro del progetto (Vite + React + TypeScript + Firebase, PWA).
-        L'app vera arriva dopo l'analisi del prodotto.
-      </p>
-    </main>
+    <AuthProvider>
+      <Gate />
+    </AuthProvider>
   )
 }

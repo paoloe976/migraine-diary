@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Ogni utente può leggere e scrivere solo sotto il proprio nodo users/{uid}.
+// Isolamento multiutente: nessuno vede il diario di un altro.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+  }
+}
