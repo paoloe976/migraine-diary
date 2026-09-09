@@ -871,14 +871,24 @@ button {
 .expander {
   width: 100%;
   margin-top: 16px;
-  border: 1px dashed var(--hairline);
-  background: none;
-  color: var(--muted);
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--text);
   border-radius: 14px;
-  padding: 12px;
-  font-size: 13.5px;
+  padding: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+}
+
+.expander-caret {
+  color: var(--accent);
+  font-size: 17px;
+  line-height: 1;
 }
 
 .details {
@@ -886,7 +896,12 @@ button {
 }
 
 .field {
-  margin-top: 18px;
+  margin-top: 26px;
+}
+
+.details .field + .field {
+  padding-top: 26px;
+  border-top: 1px solid var(--hairline);
 }
 
 .field-hint {

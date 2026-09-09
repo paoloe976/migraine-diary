@@ -167,7 +167,10 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
               className="expander"
               onClick={() => setExpanded((v) => !v)}
             >
-              {expanded ? 'Nascondi dettagli ▴' : 'Aggiungi dettagli ▾'}
+              <span>{expanded ? 'Nascondi dettagli' : 'Aggiungi dettagli'}</span>
+              <span className="expander-caret" aria-hidden="true">
+                {expanded ? '▴' : '▾'}
+              </span>
             </button>
 
             {expanded && (
