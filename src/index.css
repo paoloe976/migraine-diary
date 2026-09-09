@@ -1584,6 +1584,9 @@ button {
   padding: clamp(22px, 5vw, 44px);
   font-size: 13px;
   line-height: 1.5;
+  /* i colori del report (pallini calendario, barre, avvisi) devono stampare */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .paper h1 {
@@ -1694,13 +1697,23 @@ button {
 
 .report-bars {
   width: 100%;
-  max-width: 420px;
+  max-width: 440px;
   height: auto;
   display: block;
 }
 
 .report-bars .rb-bar {
   fill: var(--pen);
+}
+
+.report-bars .rb-axis {
+  stroke: var(--ink-soft);
+  stroke-width: 0.75;
+}
+
+.report-bars .rb-grid {
+  stroke: var(--line);
+  stroke-width: 0.75;
 }
 
 .report-bars .rb-val {
@@ -1828,11 +1841,17 @@ button {
 }
 
 @media print {
+  html,
+  body,
+  #root,
+  .app,
+  .print-page {
+    background: #fff !important;
+  }
   .report-toolbar {
     display: none;
   }
   .print-page {
-    background: #fff;
     padding: 0;
   }
   .paper {
@@ -1841,14 +1860,25 @@ button {
     box-shadow: none;
     border-radius: 0;
     padding: 0;
-    font-size: 10pt;
+    font-size: 9.5pt;
   }
   .report-section {
+    margin-top: 16px;
     break-inside: auto;
   }
-  .report-calendars,
+  .paper h2,
+  .paper h3 {
+    break-after: avoid;
+  }
+  .paper-head,
   .report-kpis,
-  .paper-head {
+  .rc-month {
+    break-inside: avoid;
+  }
+  .report-table thead {
+    display: table-header-group;
+  }
+  .report-table tr {
     break-inside: avoid;
   }
   @page {

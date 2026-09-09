@@ -96,7 +96,20 @@ export default function Stampa() {
 
   const fromLabel = from.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
   const toLabel = now.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
-  const maxBar = Math.max(4, ...months.map((m) => m.headacheDays))
+  const maxBar = Math.max(
+    5,
+    Math.ceil(Math.max(...months.map((m) => m.headacheDays)) * 1.25),
+  )
+
+  // nome file del PDF (il browser usa document.title)
+  useEffect(() => {
+    const prev = document.title
+    const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    document.title = `Diario emicrania ${stamp} - ${period} mesi`
+    return () => {
+      document.title = prev
+    }
+  }, [period, now])
 
   return (
     <div className="print-page">
@@ -159,28 +172,36 @@ export default function Stampa() {
 
         <section className="report-section">
           <h2>Andamento mensile</h2>
-          <svg className="report-bars" viewBox="0 0 300 100">
+          <svg className="report-bars" viewBox="0 0 300 82">
+            <line x1="20" y1="62" x2="298" y2="62" className="rb-axis" />
+            <line x1="20" y1="34" x2="298" y2="34" className="rb-grid" />
+            <text x="16" y="65" textAnchor="end" className="rb-lbl">
+              0
+            </text>
+            <text x="16" y="37" textAnchor="end" className="rb-lbl">
+              {maxBar / 2}
+            </text>
             {months.map((m, i) => {
-              const slotW = 280 / months.length
-              const barW = Math.min(28, slotW * 0.55)
+              const slotW = 278 / months.length
+              const barW = Math.min(24, slotW * 0.55)
               const cx = 20 + slotW * i + slotW / 2
-              const h = (m.headacheDays / maxBar) * 74
+              const h = (m.headacheDays / maxBar) * 56
               return (
                 <g key={`${m.year}-${m.month0}`}>
                   <rect
                     x={cx - barW / 2}
-                    y={86 - h}
+                    y={62 - h}
                     width={barW}
-                    height={Math.max(h, m.headacheDays > 0 ? 2 : 0)}
-                    rx={2}
+                    height={Math.max(h, m.headacheDays > 0 ? 1.5 : 0)}
+                    rx={1.5}
                     className="rb-bar"
                   />
                   {m.headacheDays > 0 && (
-                    <text x={cx} y={82 - h} textAnchor="middle" className="rb-val">
+                    <text x={cx} y={58 - h} textAnchor="middle" className="rb-val">
                       {m.headacheDays}
                     </text>
                   )}
-                  <text x={cx} y={98} textAnchor="middle" className="rb-lbl">
+                  <text x={cx} y={76} textAnchor="middle" className="rb-lbl">
                     {MONTHS[m.month0].slice(0, 3)}
                   </text>
                 </g>
