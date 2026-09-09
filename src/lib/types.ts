@@ -1,6 +1,6 @@
 export type Severity = 'lieve' | 'moderato' | 'severo'
 export type Disability = 'tutto' | 'fatica' | 'niente'
-export type Laterality = 'sx' | 'dx' | 'bilaterale' | 'diffusa'
+export type Laterality = 'sx' | 'dx' | 'bilaterale' | 'mediana'
 
 /** Un episodio / attacco. L'unità del diario. */
 export interface Episode {
