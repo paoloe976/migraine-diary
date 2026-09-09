@@ -13,6 +13,7 @@ import Profilassi from './screens/Profilassi'
 import Questionari from './screens/Questionari'
 import QuestionarioForm from './screens/QuestionarioForm'
 import QuestionarioStorico from './screens/QuestionarioStorico'
+import QuestionarioStampa from './screens/QuestionarioStampa'
 import PlainLayout from './components/PlainLayout'
 
 function Gate() {
@@ -27,6 +28,7 @@ function Gate() {
   return (
     <Routes>
       <Route path="/stampa" element={<Stampa />} />
+      <Route path="/questionari/:kind/stampa/:id" element={<QuestionarioStampa />} />
       <Route element={<PlainLayout />}>
         <Route path="/liste/:kind" element={<Liste />} />
         <Route path="/profilassi" element={<Profilassi />} />

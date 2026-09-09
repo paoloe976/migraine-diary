@@ -85,9 +85,17 @@ export default function QuestionarioStorico() {
                     </b>
                   </p>
                 ))}
-                <button type="button" className="hist-del" onClick={() => remove(e.id)}>
-                  Elimina compilazione
-                </button>
+                <div className="hist-actions">
+                  <Link
+                    to={`/questionari/${def.kind}/stampa/${e.id}`}
+                    className="hist-print"
+                  >
+                    Stampa PDF
+                  </Link>
+                  <button type="button" className="hist-del" onClick={() => remove(e.id)}>
+                    Elimina
+                  </button>
+                </div>
               </div>
             )}
           </div>

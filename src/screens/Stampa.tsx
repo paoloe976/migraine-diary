@@ -515,6 +515,7 @@ export default function Stampa() {
 
                 <section className="report-section">
                   <h2>Dettaglio episodi</h2>
+                  <div className="rt-scroll">
                   <table className="report-table">
                     <thead>
                       <tr>
@@ -569,6 +570,7 @@ export default function Stampa() {
                       )}
                     </tbody>
                   </table>
+                  </div>
                 </section>
 
                 <footer className="paper-foot">
