@@ -51,7 +51,12 @@ export default function Home() {
   const stats = monthStats(monthEpisodes)
   const monthName = cap(now.toLocaleDateString('it-IT', { month: 'long' }))
   const today = cap(
-    now.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' }),
+    now.toLocaleDateString('it-IT', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }),
   )
 
   // lista mostrata: se l'episodio flash non è già tra i recenti, lo si mette in cima
