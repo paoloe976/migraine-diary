@@ -18,17 +18,17 @@ interface Zone {
  */
 const ZONES: readonly Zone[] = [
   // --- fronte (testa centrata su x = 72) ---
-  { name: 'fronte', side: 'centro', cx: 72, cy: 45, rx: 30, ry: 13 },
-  { name: 'tempia destra', side: 'dx', cx: 39, cy: 69, rx: 10, ry: 15 },
-  { name: 'tempia sinistra', side: 'sx', cx: 105, cy: 69, rx: 10, ry: 15 },
-  { name: 'zona occhio destra', side: 'dx', cx: 56, cy: 87, rx: 11, ry: 8 },
-  { name: 'zona occhio sinistra', side: 'sx', cx: 88, cy: 87, rx: 11, ry: 8 },
+  { name: 'fronte', side: 'centro', cx: 72, cy: 44, rx: 30, ry: 12 },
+  { name: 'tempia destra', side: 'dx', cx: 40, cy: 64, rx: 10, ry: 13 },
+  { name: 'tempia sinistra', side: 'sx', cx: 104, cy: 64, rx: 10, ry: 13 },
+  { name: 'zona occhio destra', side: 'dx', cx: 56, cy: 82, rx: 11, ry: 8 },
+  { name: 'zona occhio sinistra', side: 'sx', cx: 88, cy: 82, rx: 11, ry: 8 },
   // --- retro (testa centrata su x = 228) ---
-  { name: 'vertice', side: 'centro', cx: 228, cy: 45, rx: 30, ry: 13 },
-  { name: 'parietale sinistra', side: 'sx', cx: 199, cy: 76, rx: 13, ry: 17 },
-  { name: 'parietale destra', side: 'dx', cx: 257, cy: 76, rx: 13, ry: 17 },
-  { name: 'occipite', side: 'centro', cx: 228, cy: 112, rx: 26, ry: 15 },
-  { name: 'nuca', side: 'centro', cx: 228, cy: 143, rx: 18, ry: 11 },
+  { name: 'vertice', side: 'centro', cx: 228, cy: 44, rx: 30, ry: 12 },
+  { name: 'parietale sinistra', side: 'sx', cx: 200, cy: 72, rx: 12, ry: 15 },
+  { name: 'parietale destra', side: 'dx', cx: 256, cy: 72, rx: 12, ry: 15 },
+  { name: 'occipite', side: 'centro', cx: 228, cy: 104, rx: 25, ry: 14 },
+  { name: 'nuca', side: 'centro', cx: 228, cy: 130, rx: 17, ry: 10 },
 ]
 
 const SIDE_BY_NAME = new Map(ZONES.map((z) => [z.name, z.side]))
@@ -50,14 +50,20 @@ export const LATERALITY_LABEL: Record<Laterality, string> = {
 }
 
 const SKULL_PATH =
-  'M72,24 C42,24 28,48 28,86 C28,108 32,128 42,146 C50,160 60,174 72,174 C84,174 94,160 102,146 C112,128 116,108 116,86 C116,48 102,24 72,24 Z'
+  'M72,28 C46,28 30,48 30,78 C30,98 36,116 48,128 C57,138 64,146 72,146 C80,146 87,138 96,128 C108,116 114,98 114,78 C114,48 98,28 72,28 Z'
 
-/** Contorni del viso condivisi dalle due viste (orecchie), stile linea sottile. */
-function Ears() {
+function FaceOutline({ face = false }: { face?: boolean }) {
   return (
     <>
-      <path className="feat" d="M29,83 c-7,1 -9,9 -5,15 c2,3 6,4 8,1" />
-      <path className="feat" d="M115,83 c7,1 9,9 5,15 c-2,3 -6,4 -8,1" />
+      <use href="#skull-shape" className="skull" />
+      <path className="feat" d="M31,78 c-7,1 -9,8 -5,13 c2,3 6,4 8,1" />
+      <path className="feat" d="M113,78 c7,1 9,8 5,13 c-2,3 -6,4 -8,1" />
+      {face && (
+        <>
+          <path className="feat" d="M72,84 q-4,11 -3,16 q3,2 6,0" />
+          <path className="feat" d="M64,112 h16" />
+        </>
+      )}
     </>
   )
 }
@@ -73,22 +79,14 @@ export default function HeadMap({
     onChange(value.includes(name) ? value.filter((n) => n !== name) : [...value, name])
 
   return (
-    <svg className="headmap" viewBox="0 0 300 210" role="group" aria-label="Dove fa male">
+    <svg className="headmap" viewBox="0 0 300 188" role="group" aria-label="Dove fa male">
       <defs>
         <path id="skull-shape" d={SKULL_PATH} />
       </defs>
 
-      {/* vista frontale */}
-      <use href="#skull-shape" className="skull" />
-      <Ears />
-      <path className="feat" d="M72,91 q-4,13 -3,18 q3,2 6,0" />
-      <path className="feat" d="M63,128 q9,5 18,0" />
-
-      {/* vista posteriore */}
+      <FaceOutline face />
       <g transform="translate(156,0)">
-        <use href="#skull-shape" className="skull" />
-        <Ears />
-        <path className="feat" d="M192,150 q36,17 72,0" />
+        <FaceOutline />
       </g>
 
       {ZONES.map((z) => (
@@ -114,12 +112,14 @@ export default function HeadMap({
         </ellipse>
       ))}
 
-      <text className="hlabel" x="72" y="197">
-        FRONTE
-      </text>
-      <text className="hlabel" x="228" y="197">
-        RETRO
-      </text>
+      {/* orientamento: lato della PERSONA */}
+      <text className="hlabel" x="13" y="90">DX</text>
+      <text className="hlabel" x="131" y="90">SX</text>
+      <text className="hlabel" x="169" y="90">SX</text>
+      <text className="hlabel" x="287" y="90">DX</text>
+
+      <text className="hlabel" x="72" y="180">FRONTE</text>
+      <text className="hlabel" x="228" y="180">RETRO</text>
     </svg>
   )
 }
