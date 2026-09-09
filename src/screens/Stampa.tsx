@@ -186,7 +186,7 @@ export default function Stampa() {
 
   useEffect(() => {
     const prev = document.title
-    document.title = `Diario emicrania ${toDateInput(rangeStart)} — ${toDateInput(to)}`
+    document.title = `Diario emicrania ${toDateInput(rangeStart)} ${toDateInput(to)}`
     return () => {
       document.title = prev
     }
