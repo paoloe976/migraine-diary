@@ -7,13 +7,26 @@ import {
   updateEpisode,
   DEFAULT_TYPES,
 } from '../lib/data'
-import type { Disability, Episode, EpisodePatch, Profile, Severity } from '../lib/types'
+import type {
+  Disability,
+  Episode,
+  EpisodePatch,
+  MedEfficacy,
+  Profile,
+  Severity,
+} from '../lib/types'
 import { SEVERITY_LABEL, toDateInput, toTimeInput, withDate, withTime } from '../lib/format'
 import { useDialog } from '../components/Dialog'
 import HeadMap, { lateralityFromZones, locationSummary } from '../components/HeadMap'
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
+const DURATIONS = ['< 4 h', '4–12 h', '12–24 h', '> 24 h']
+const EFFICACY: Array<[MedEfficacy, string]> = [
+  ['efficace', 'Efficace'],
+  ['parziale', 'Parziale'],
+  ['non_efficace', 'Non efficace'],
+]
 const PROMPT_MESSAGE: Record<keyof Profile, string> = {
   types: 'Nuovo tipo di mal di testa',
   meds: 'Nome del farmaco',
@@ -182,6 +195,21 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                   />
                 </Field>
 
+                <Field label="Durata">
+                  <div className="chips">
+                    {DURATIONS.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        className={`chip${draft.duration === d ? ' is-on' : ''}`}
+                        onClick={() => patch({ duration: draft.duration === d ? null : d })}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
                 <Field
                   label="Farmaco preso"
                   hint={profile.meds.length ? undefined : 'compaiono qui man mano che li usi'}
@@ -197,6 +225,25 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                     }
                   />
                 </Field>
+
+                {draft.meds.length > 0 && (
+                  <Field label="Efficacia del farmaco">
+                    <div className="chips">
+                      {EFFICACY.map(([k, lbl]) => (
+                        <button
+                          key={k}
+                          type="button"
+                          className={`chip${draft.medEfficacy === k ? ' is-on' : ''}`}
+                          onClick={() =>
+                            patch({ medEfficacy: draft.medEfficacy === k ? null : k })
+                          }
+                        >
+                          {lbl}
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+                )}
 
                 <Field label="Sintomi">
                   <Chips

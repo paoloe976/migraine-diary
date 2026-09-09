@@ -7,7 +7,13 @@ import {
   subscribeProphylaxis,
 } from '../lib/data'
 import type { Episode, Prophylaxis, Severity } from '../lib/types'
-import { SEVERITY_LABEL, cap, monthYearLabel, toDateInput } from '../lib/format'
+import {
+  MED_EFFICACY_LABEL,
+  SEVERITY_LABEL,
+  cap,
+  monthYearLabel,
+  toDateInput,
+} from '../lib/format'
 import { MONTHS, WEEKDAYS, monthGrid } from '../lib/calendar'
 import { locationSummary } from '../components/HeadMap'
 
@@ -485,6 +491,7 @@ export default function Stampa() {
                       <tr>
                         <th>Data</th>
                         <th>Ora</th>
+                        <th>Durata</th>
                         <th>Tipo</th>
                         <th>Intensità</th>
                         <th>Sede</th>
@@ -509,10 +516,15 @@ export default function Stampa() {
                               minute: '2-digit',
                             })}
                           </td>
+                          <td>{e.duration ?? '—'}</td>
                           <td>{e.type ?? '—'}</td>
                           <td>{e.severity ? SEVERITY_LABEL[e.severity] : '—'}</td>
                           <td>{locationSummary(e.headZones) || '—'}</td>
-                          <td>{e.meds.join(', ') || '—'}</td>
+                          <td>
+                            {e.meds.length > 0
+                              ? `${e.meds.join(', ')}${e.medEfficacy ? ` (${MED_EFFICACY_LABEL[e.medEfficacy]})` : ''}`
+                              : '—'}
+                          </td>
                           <td>{e.disability ? cap(e.disability) : '—'}</td>
                           <td>
                             {[e.triggers.join(', '), e.notes].filter(Boolean).join(' — ') || ''}
@@ -521,7 +533,7 @@ export default function Stampa() {
                       ))}
                       {sorted.length === 0 && (
                         <tr>
-                          <td colSpan={8} className="report-empty">
+                          <td colSpan={9} className="report-empty">
                             Nessun episodio nel periodo.
                           </td>
                         </tr>

@@ -1,9 +1,15 @@
-import type { Episode, Severity } from './types'
+import type { Episode, MedEfficacy, Severity } from './types'
 
 export const SEVERITY_LABEL: Record<Severity, string> = {
   lieve: 'Lieve',
   moderato: 'Moderato',
   severo: 'Severo',
+}
+
+export const MED_EFFICACY_LABEL: Record<MedEfficacy, string> = {
+  efficace: 'efficace',
+  parziale: 'parziale',
+  non_efficace: 'non efficace',
 }
 
 export const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)

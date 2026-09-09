@@ -1,6 +1,7 @@
 export type Severity = 'lieve' | 'moderato' | 'severo'
 export type Disability = 'lieve' | 'moderata' | 'elevata'
 export type Laterality = 'sx' | 'dx' | 'bilaterale'
+export type MedEfficacy = 'efficace' | 'parziale' | 'non_efficace'
 
 /** Un episodio / attacco. L'unità del diario. */
 export interface Episode {
@@ -10,10 +11,14 @@ export interface Episode {
   /** fine, opzionale (attacchi di più giorni) */
   end: Date | null
   severity: Severity | null
+  /** durata approssimativa, etichetta bucket ("< 4 h", "4–12 h", …) */
+  duration: string | null
   /** etichetta del tipo, scelta dalla lista dell'utente */
   type: string | null
   painQuality: string[]
   meds: string[]
+  /** efficacia del/i farmaco/i preso/i (generica, come il diario AIC) */
+  medEfficacy: MedEfficacy | null
   symptoms: string[]
   /** zone della testa toccate sulla mappa (Fase 2) */
   headZones: string[]
