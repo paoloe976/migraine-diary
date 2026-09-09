@@ -1365,6 +1365,11 @@ button {
   background: none;
 }
 
+/* voce scelta ma non più nella lista (dopo un rename): bordo tratteggiato */
+.chip.orphan {
+  border-style: dashed;
+}
+
 .note-input {
   width: 100%;
   border: 1px solid var(--hairline);

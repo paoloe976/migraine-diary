@@ -323,13 +323,18 @@ function Chips({
     if (value.includes(o)) onChange(value.filter((x) => x !== o))
     else onChange(multi ? [...value, o] : [o])
   }
+  // voci scelte nell'episodio ma non più nella lista (es. dopo un rename):
+  // vanno comunque mostrate, altrimenti non si possono togliere
+  const shown = [...options, ...value.filter((v) => !options.includes(v))]
   return (
     <div className="chips">
-      {options.map((o) => (
+      {shown.map((o) => (
         <button
           key={o}
           type="button"
-          className={`chip${value.includes(o) ? ' is-on' : ''}`}
+          className={`chip${value.includes(o) ? ' is-on' : ''}${
+            options.includes(o) ? '' : ' orphan'
+          }`}
           onClick={() => toggle(o)}
         >
           {o}
