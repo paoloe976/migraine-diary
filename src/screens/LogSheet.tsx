@@ -7,15 +7,10 @@ import {
   updateEpisode,
   DEFAULT_TYPES,
 } from '../lib/data'
-import type {
-  Disability,
-  Episode,
-  EpisodePatch,
-  Laterality,
-  Profile,
-  Severity,
-} from '../lib/types'
+import type { Disability, Episode, EpisodePatch, Profile, Severity } from '../lib/types'
 import { SEVERITY_LABEL, toDateInput, toTimeInput, withDate, withTime } from '../lib/format'
+import { useDialog } from '../components/Dialog'
+import HeadMap, { LATERALITY_LABEL, lateralityFromZones } from '../components/HeadMap'
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
@@ -29,12 +24,11 @@ const DEFAULT_TRIGGERS = [
   'Schermi a lungo',
   'Sforzo fisico',
 ]
-const SEDE: [Laterality, string][] = [
-  ['sx', 'Sinistra'],
-  ['dx', 'Destra'],
-  ['bilaterale', 'Bilaterale'],
-  ['diffusa', 'Diffusa'],
-]
+const PROMPT_MESSAGE: Record<keyof Profile, string> = {
+  types: 'Nuovo tipo di mal di testa',
+  meds: 'Nome del farmaco',
+  triggers: 'Nuova causa scatenante',
+}
 const DISABILITY: [Disability, string][] = [
   ['tutto', 'Faccio tutto'],
   ['fatica', 'A fatica'],
@@ -53,6 +47,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
   const [profile, setProfile] = useState<Profile>({ types: DEFAULT_TYPES, meds: [], triggers: [] })
   const [expanded, setExpanded] = useState(!isNew)
   const [closing, setClosing] = useState(false)
+  const dialog = useDialog()
 
   // Prende il PRIMO snapshot come base; le modifiche successive sono locali
   // (questo foglio è l'unico editor dell'episodio) per evitare sfarfallii.
@@ -74,15 +69,20 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
     window.setTimeout(onClose, 200)
   }
 
-  function remove() {
-    if (window.confirm('Eliminare questo episodio?')) {
+  async function remove() {
+    const ok = await dialog.confirm({
+      message: 'Eliminare questo episodio?',
+      confirmLabel: 'Elimina',
+      danger: true,
+    })
+    if (ok) {
       void deleteEpisode(uid, episodeId)
       close()
     }
   }
 
   async function addCustom(field: keyof Profile, select: (value: string) => void) {
-    const value = window.prompt('Aggiungi')?.trim()
+    const value = (await dialog.prompt({ message: PROMPT_MESSAGE[field] }))?.trim()
     if (!value) return
     await addToProfileList(uid, field, value)
     select(value)
@@ -101,6 +101,9 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
         aria-hidden="true"
       />
       <div className={`sheet${closing ? '' : ' is-open'}`} role="dialog" aria-label="Episodio">
+        <button type="button" className="sheet-x" onClick={close} aria-label="Chiudi">
+          ✕
+        </button>
         <div className="grabber" />
         <span className={`saved-badge${isNew ? ' is-new' : ''}`}>
           <span className="tick" aria-hidden="true">
@@ -208,21 +211,31 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                   />
                 </Field>
 
-                <Field label="Dove fa male">
-                  <div className="chips">
-                    {SEDE.map(([k, lbl]) => (
-                      <button
-                        key={k}
-                        type="button"
-                        className={`chip${draft.laterality === k ? ' is-on' : ''}`}
-                        onClick={() =>
-                          patch({ laterality: draft.laterality === k ? null : k })
-                        }
-                      >
-                        {lbl}
-                      </button>
-                    ))}
-                  </div>
+                <Field
+                  label="Dove fa male"
+                  hint="tocca le zone — la lateralità si ricava da sola"
+                >
+                  <HeadMap
+                    value={draft.headZones}
+                    onChange={(zones) =>
+                      patch({ headZones: zones, laterality: lateralityFromZones(zones) })
+                    }
+                  />
+                  <p className="head-readout">
+                    {draft.headZones.length === 0 ? (
+                      'Nessuna zona selezionata'
+                    ) : (
+                      <>
+                        {draft.headZones.join(', ')}
+                        {draft.laterality && (
+                          <>
+                            {' · '}
+                            <b>{LATERALITY_LABEL[draft.laterality]}</b>
+                          </>
+                        )}
+                      </>
+                    )}
+                  </p>
                 </Field>
 
                 <Field label="Disabilità">

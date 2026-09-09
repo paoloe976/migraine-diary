@@ -735,6 +735,152 @@ button {
   cursor: pointer;
 }
 
+/* ============ Sheet: X di chiusura ============ */
+
+.sheet-x {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* ============ Mappa della testa ============ */
+
+.headmap {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 320px;
+}
+
+.headmap .skull {
+  fill: var(--surface-2);
+  stroke: var(--hairline);
+  stroke-width: 1.5;
+}
+
+.headmap .feat {
+  fill: none;
+  stroke: var(--faint);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.headmap .zone {
+  fill: rgba(255, 255, 255, 0.04);
+  stroke: var(--hairline);
+  stroke-width: 1.2;
+  cursor: pointer;
+  transition: fill 0.12s ease, stroke 0.12s ease;
+}
+
+.headmap .zone:hover {
+  fill: rgba(255, 255, 255, 0.09);
+}
+
+.headmap .zone.is-on {
+  fill: var(--accent-dim);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.headmap .hlabel {
+  fill: var(--faint);
+  font: 600 9px 'Hanken Grotesk', sans-serif;
+  text-anchor: middle;
+  letter-spacing: 0.04em;
+}
+
+.head-readout {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 8px 2px 0;
+}
+
+.head-readout b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ============ Dialoghi ============ */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 14, 0.6);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 60;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.55);
+}
+
+.dialog-msg {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dialog-input {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 11px 13px;
+  font-size: 15px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.dialog-btn {
+  border: 1px solid var(--hairline);
+  background: none;
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dialog-btn.primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.dialog-btn.primary.danger {
+  background: var(--severo);
+}
+
+.dialog-btn:disabled {
+  opacity: 0.5;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { AuthProvider, useAuth } from './lib/auth'
+import { DialogProvider } from './components/Dialog'
 import AppShell from './components/AppShell'
 import Login from './screens/Login'
 import Home from './screens/Home'
@@ -32,7 +33,9 @@ function Gate() {
 export default function App() {
   return (
     <AuthProvider>
-      <Gate />
+      <DialogProvider>
+        <Gate />
+      </DialogProvider>
     </AuthProvider>
   )
 }
