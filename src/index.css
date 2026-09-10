@@ -8,9 +8,11 @@
   --text: #e7e4df;
   --muted: #9594a6;
   --faint: #6d6c7d;
+  /* --accent è impostato a runtime da src/lib/theme.ts (scelta in "Altro"),
+     default = blu polvere. --accent-dim lo segue automaticamente. */
   --accent: #7ba6c9;
   --accent-ink: #0f1420;
-  --accent-dim: rgba(123, 166, 201, 0.16);
+  --accent-dim: color-mix(in srgb, var(--accent) 16%, transparent);
   --hairline: rgba(255, 255, 255, 0.08);
   --lieve: #85b08f;
   --moderato: #d8a566;
@@ -246,7 +248,7 @@ button {
   border: none;
   border-radius: 22px;
   padding: 22px 20px;
-  background: linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #5a5ac0));
+  background: linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #10101c));
   color: var(--accent-ink);
   font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 700;
@@ -589,8 +591,30 @@ button {
   padding: 2px 7px;
 }
 
+.accent-picker {
+  display: flex;
+  gap: 12px;
+  padding: 2px 4px;
+}
+
+.accent-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--hairline) inset;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s ease;
+}
+
+.accent-swatch.is-on {
+  border-color: var(--text);
+  transform: scale(1.12);
+}
+
 .btn-logout {
-  margin-top: 22px;
+  margin-top: 26px;
   border: 1px solid var(--hairline);
   background: var(--surface-2);
   color: var(--text);
