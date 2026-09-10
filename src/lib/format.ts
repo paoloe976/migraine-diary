@@ -14,6 +14,31 @@ export const MED_EFFICACY_LABEL: Record<MedEfficacy, string> = {
 
 export const cap = (s: string): string => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 
+/** Bucket di durata dell'attacco, allineati a ICHD-3. */
+export const DURATION_BUCKETS = ['< 4 h', '4–12 h', '12–24 h', '> 24 h']
+
+/** Sceglie il bucket di durata dato inizio e fine. */
+export function durationBucket(start: Date, end: Date): string {
+  const h = Math.max(0, (end.getTime() - start.getTime()) / 3_600_000)
+  if (h < 4) return DURATION_BUCKETS[0]
+  if (h < 12) return DURATION_BUCKETS[1]
+  if (h < 24) return DURATION_BUCKETS[2]
+  return DURATION_BUCKETS[3]
+}
+
+export const sameDay = (a: Date, b: Date): boolean =>
+  a.getFullYear() === b.getFullYear() &&
+  a.getMonth() === b.getMonth() &&
+  a.getDate() === b.getDate()
+
+/** "35 min", "circa un'ora", "circa 6 ore" — tempo trascorso in forma discorsiva. */
+export function elapsedLabel(from: Date, to: Date): string {
+  const mins = Math.max(0, Math.round((to.getTime() - from.getTime()) / 60_000))
+  if (mins < 60) return `${mins} min`
+  const h = Math.round(mins / 60)
+  return h === 1 ? "circa un'ora" : `circa ${h} ore`
+}
+
 const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
 
 /** Giorni distinti con almeno un episodio, e giorni con almeno un farmaco. */

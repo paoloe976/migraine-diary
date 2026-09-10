@@ -15,13 +15,19 @@ import type {
   Profile,
   Severity,
 } from '../lib/types'
-import { SEVERITY_LABEL, toDateInput, toTimeInput, withDate, withTime } from '../lib/format'
+import {
+  DURATION_BUCKETS,
+  SEVERITY_LABEL,
+  toDateInput,
+  toTimeInput,
+  withDate,
+  withTime,
+} from '../lib/format'
 import { useDialog } from '../components/Dialog'
 import HeadMap, { lateralityFromZones, locationSummary } from '../components/HeadMap'
 
 const PAIN_QUALITY = ['Pulsante', 'Gravativo / a cerchio', 'Trafittivo', 'A fitte']
 const SYMPTOMS = ['Nausea', 'Vomito', 'Fastidio luce / rumori', 'Aura']
-const DURATIONS = ['< 4 h', '4–12 h', '12–24 h', '> 24 h']
 const EFFICACY: Array<[MedEfficacy, string]> = [
   ['efficace', 'Efficace'],
   ['parziale', 'Parziale'],
@@ -197,7 +203,7 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
 
                 <Field label="Durata">
                   <div className="chips">
-                    {DURATIONS.map((d) => (
+                    {DURATION_BUCKETS.map((d) => (
                       <button
                         key={d}
                         type="button"

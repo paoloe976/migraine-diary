@@ -4,20 +4,36 @@ import { useShell } from '../components/AppShell'
 import {
   subscribeEpisode,
   subscribeMonthEpisodes,
+  subscribeMonthNotes,
   subscribeRecentEpisodes,
 } from '../lib/data'
-import type { Episode } from '../lib/types'
-import { cap, episodeSubtitle, episodeTitle, monthStats } from '../lib/format'
+import type { DayNote, Episode } from '../lib/types'
+import { cap, episodeSubtitle, episodeTitle, monthStats, sameDay, SEVERITY_LABEL } from '../lib/format'
+import ConcludeSheet from './ConcludeSheet'
+
+function todayEpisodeLine(e: Episode): string {
+  const time = e.start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  const status =
+    e.end != null
+      ? e.duration
+        ? `concluso · ${e.duration}`
+        : 'concluso'
+      : e.duration != null
+        ? e.duration
+        : 'in corso'
+  return [time, status, e.meds.join(', ')].filter(Boolean).join(' · ')
+}
 
 export default function Home() {
   const { user } = useAuth()
   const { openLog, openNote, lastLoggedId, clearLastLogged } = useShell()
   const [recent, setRecent] = useState<Episode[]>([])
   const [monthEpisodes, setMonthEpisodes] = useState<Episode[]>([])
+  const [monthNotes, setMonthNotes] = useState<DayNote[]>([])
+  const [concluding, setConcluding] = useState<Episode | null>(null)
 
-  // Episodio appena inserito: lo si evidenzia e lo si mostra comunque, anche
-  // se una data insolita lo terrebbe fuori dagli "ultimi 3". Effimero: sparisce
-  // uscendo dalla home (il componente si smonta e lo stato si perde).
+  // Episodio appena inserito per una data NON di oggi: lo si evidenzia e lo si
+  // mostra comunque, anche se cadrebbe fuori dagli "ultimi 3". Effimero.
   const [flashId, setFlashId] = useState<string | null>(null)
   const [flashEpisode, setFlashEpisode] = useState<Episode | null>(null)
 
@@ -25,11 +41,13 @@ export default function Home() {
 
   useEffect(() => {
     if (!user) return
-    const u1 = subscribeRecentEpisodes(user.uid, 3, setRecent)
+    const u1 = subscribeRecentEpisodes(user.uid, 4, setRecent)
     const u2 = subscribeMonthEpisodes(user.uid, now.getFullYear(), now.getMonth(), setMonthEpisodes)
+    const u3 = subscribeMonthNotes(user.uid, now.getFullYear(), now.getMonth(), setMonthNotes)
     return () => {
       u1()
       u2()
+      u3()
     }
   }, [user, now])
 
@@ -59,11 +77,33 @@ export default function Home() {
     }),
   )
 
-  // lista mostrata: se l'episodio flash non è già tra i recenti, lo si mette in cima
+  const todayEpisodes = useMemo(() => {
+    const base = monthEpisodes.filter((e) => sameDay(e.start, now))
+    if (
+      flashEpisode &&
+      sameDay(flashEpisode.start, now) &&
+      !base.some((e) => e.id === flashEpisode.id)
+    ) {
+      base.push(flashEpisode)
+    }
+    return base.sort((a, b) => b.start.getTime() - a.start.getTime())
+  }, [monthEpisodes, flashEpisode, now])
+
+  const todayNotes = useMemo(
+    () => monthNotes.filter((n) => sameDay(n.date, now)),
+    [monthNotes, now],
+  )
+
+  // "Ultimi episodi": esclude quelli di oggi (stanno nella card "Oggi")
+  const listBase = recent.filter((e) => !sameDay(e.start, now))
   const list =
-    flashEpisode && !recent.some((e) => e.id === flashEpisode.id)
-      ? [flashEpisode, ...recent]
-      : recent
+    flashEpisode &&
+    !sameDay(flashEpisode.start, now) &&
+    !listBase.some((e) => e.id === flashEpisode.id)
+      ? [flashEpisode, ...listBase]
+      : listBase
+
+  const hasToday = todayEpisodes.length > 0 || todayNotes.length > 0
 
   return (
     <section className="screen">
@@ -83,6 +123,64 @@ export default function Home() {
       <button type="button" className="note-btn" onClick={() => openNote()}>
         <span aria-hidden="true">✎</span> Annota qualcosa
       </button>
+
+      {hasToday && (
+        <div className="today-card">
+          {todayEpisodes.map((e) => {
+            const inProgress = e.end == null && e.duration == null
+            return (
+              <div key={e.id} className="today-ep">
+                <button
+                  type="button"
+                  className="today-ep-main"
+                  onClick={() => openLog(e.id)}
+                >
+                  <span className={`sev-dot sev-${e.severity ?? 'none'}`} aria-hidden="true" />
+                  <span className="today-ep-txt">
+                    <b>
+                      {e.severity ? SEVERITY_LABEL[e.severity] : 'Episodio'}
+                      {e.type ? ` · ${e.type}` : ''}
+                    </b>
+                    <p>{todayEpisodeLine(e)}</p>
+                  </span>
+                  <span className="chev" aria-hidden="true">
+                    ›
+                  </span>
+                </button>
+                {inProgress && (
+                  <button
+                    type="button"
+                    className="today-ep-done"
+                    onClick={() => setConcluding(e)}
+                  >
+                    Mi è passato
+                  </button>
+                )}
+              </div>
+            )
+          })}
+
+          {todayNotes.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              className="today-note"
+              onClick={() => openNote(n.id)}
+            >
+              <span className="today-note-icon" aria-hidden="true">
+                ✎
+              </span>
+              <span className="today-ep-txt">
+                <b>{n.text || 'Nota'}</b>
+                {n.tags.length > 0 && <p>{n.tags.join(' · ')}</p>}
+              </span>
+              <span className="chev" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="card">
         <div className="month-row">
@@ -127,6 +225,14 @@ export default function Home() {
             )
           })}
         </>
+      )}
+
+      {concluding && user && (
+        <ConcludeSheet
+          uid={user.uid}
+          episode={concluding}
+          onClose={() => setConcluding(null)}
+        />
       )}
     </section>
   )
