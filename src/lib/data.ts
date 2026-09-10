@@ -33,6 +33,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
   type DocumentData,
   type QueryDocumentSnapshot,
   type Unsubscribe,
@@ -372,4 +373,66 @@ export function subscribeQuestionnaires(
   return onSnapshot(questionnairesCol(uid), (s) =>
     cb(s.docs.map(toQuestionnaire).sort((a, b) => b.date.getTime() - a.date.getTime())),
   )
+}
+
+// ==================== Manutenzione / import ====================
+
+async function deleteAll(col: ReturnType<typeof collection>): Promise<number> {
+  const snap = await getDocs(query(col))
+  for (let i = 0; i < snap.docs.length; i += 400) {
+    const batch = writeBatch(db)
+    snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref))
+    await batch.commit()
+  }
+  return snap.docs.length
+}
+
+/** Cancella episodi, profilassi e questionari dell'utente. Il profilo resta. */
+export async function clearUserData(
+  uid: string,
+): Promise<{ episodes: number; prophylaxis: number; questionnaires: number }> {
+  return {
+    episodes: await deleteAll(episodesCol(uid)),
+    prophylaxis: await deleteAll(prophylaxisCol(uid)),
+    questionnaires: await deleteAll(questionnairesCol(uid)),
+  }
+}
+
+export interface ImportRow {
+  start: Date
+  severity: Episode['severity']
+  disability: Episode['disability']
+  meds: string[]
+  notes: string
+}
+
+/** Inserimento massivo di episodi (import una-tantum del vecchio diario). */
+export async function bulkImportEpisodes(uid: string, rows: ImportRow[]): Promise<number> {
+  const col = episodesCol(uid)
+  for (let i = 0; i < rows.length; i += 400) {
+    const batch = writeBatch(db)
+    rows.slice(i, i + 400).forEach((r) => {
+      batch.set(doc(col), {
+        start: Timestamp.fromDate(r.start),
+        end: null,
+        severity: r.severity,
+        duration: null,
+        type: null,
+        painQuality: [],
+        meds: r.meds,
+        medEfficacy: null,
+        symptoms: [],
+        headZones: [],
+        laterality: null,
+        disability: r.disability,
+        triggers: [],
+        notes: r.notes,
+        imported: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
+    })
+    await batch.commit()
+  }
+  return rows.length
 }

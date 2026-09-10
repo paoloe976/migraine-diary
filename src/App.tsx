@@ -14,6 +14,7 @@ import Questionari from './screens/Questionari'
 import QuestionarioForm from './screens/QuestionarioForm'
 import QuestionarioStorico from './screens/QuestionarioStorico'
 import QuestionarioStampa from './screens/QuestionarioStampa'
+import Import from './screens/Import'
 import PlainLayout from './components/PlainLayout'
 
 function Gate() {
@@ -35,6 +36,7 @@ function Gate() {
         <Route path="/questionari" element={<Questionari />} />
         <Route path="/questionari/:kind" element={<QuestionarioForm />} />
         <Route path="/questionari/:kind/storico" element={<QuestionarioStorico />} />
+        <Route path="/import" element={<Import />} />
       </Route>
       <Route element={<AppShell />}>
         <Route path="/" element={<Home />} />
