@@ -26,6 +26,8 @@ export interface Episode {
   disability: Disability | null
   triggers: string[]
   notes: string
+  /** true se l'episodio proviene dall'import una-tantum del vecchio diario */
+  imported: boolean
   createdAt: Date | null
   updatedAt: Date | null
 }

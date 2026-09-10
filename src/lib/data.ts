@@ -172,6 +172,7 @@ function toEpisode(snap: QueryDocumentSnapshot<DocumentData>): Episode {
     disability: d.disability ?? null,
     triggers: d.triggers ?? [],
     notes: d.notes ?? '',
+    imported: d.imported ?? false,
     createdAt: toDate(d.createdAt),
     updatedAt: toDate(d.updatedAt),
   }

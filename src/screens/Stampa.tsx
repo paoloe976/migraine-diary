@@ -259,6 +259,30 @@ export default function Stampa() {
   const byZone = tally(sorted.flatMap((e) => e.headZones))
   const byTrigger = tally(sorted.flatMap((e) => e.triggers))
 
+  // "Note e contesto": note del giorno + note scritte a mano negli episodi
+  // (non quelle dei 420 episodi importati), unite e ordinate per data.
+  const contextEntries = useMemo(() => {
+    const fromNotes = notes.map((n) => ({
+      id: n.id,
+      date: n.date,
+      text: n.text,
+      tags: n.tags,
+      fromEpisode: false,
+    }))
+    const fromEpisodes = sorted
+      .filter((e) => !e.imported && e.notes.trim() !== '')
+      .map((e) => ({
+        id: `ep-${e.id}`,
+        date: e.start,
+        text: e.notes.trim(),
+        tags: [] as string[],
+        fromEpisode: true,
+      }))
+    return [...fromNotes, ...fromEpisodes].sort(
+      (a, b) => a.date.getTime() - b.date.getTime(),
+    )
+  }, [notes, sorted])
+
   const fromLabel = rangeStart.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })
   const toLabel = to.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
   const genLabel = now.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -461,11 +485,11 @@ export default function Stampa() {
                   </section>
                 )}
 
-                {notes.length > 0 && (
+                {contextEntries.length > 0 && (
                   <section className="report-section report-notes">
                     <h2>Note e contesto</h2>
                     <ul>
-                      {notes.map((n) => (
+                      {contextEntries.map((n) => (
                         <li key={n.id}>
                           <span className="rn-date">
                             {n.date.toLocaleDateString('it-IT', {
@@ -478,6 +502,9 @@ export default function Stampa() {
                             {n.text}
                             {n.tags.length > 0 && (
                               <span className="rn-tags"> [{n.tags.join(', ')}]</span>
+                            )}
+                            {n.fromEpisode && (
+                              <span className="rn-src"> · durante un attacco</span>
                             )}
                           </span>
                         </li>
@@ -568,7 +595,7 @@ export default function Stampa() {
                         <th>Sede</th>
                         <th>Farmaco</th>
                         <th>Disab.</th>
-                        <th>Note</th>
+                        <th>Scatenanti</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -597,9 +624,7 @@ export default function Stampa() {
                               : '—'}
                           </td>
                           <td>{e.disability ? cap(e.disability) : '—'}</td>
-                          <td>
-                            {[e.triggers.join(', '), e.notes].filter(Boolean).join(' — ') || ''}
-                          </td>
+                          <td>{e.triggers.join(', ') || '—'}</td>
                         </tr>
                       ))}
                       {sorted.length === 0 && (

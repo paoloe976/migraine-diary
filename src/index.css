@@ -2642,13 +2642,18 @@ button {
   color: var(--ink-soft);
 }
 
+.report-notes .rn-src {
+  color: var(--ink-faint);
+  font-style: italic;
+}
+
 .rt-scroll {
   overflow-x: auto;
 }
 
 .report-table {
   width: 100%;
-  min-width: 620px;
+  min-width: 540px;
   border-collapse: collapse;
   font-size: 10.5px;
 }
