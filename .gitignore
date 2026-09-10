@@ -11,6 +11,12 @@ dist-ssr
 # Scratch: file di lavoro locali che non devono finire nel repo
 tmp/
 
+# Firebase CLI
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+*-firebase-adminsdk-*.json
+
 # Editor / OS
 .DS_Store
 Thumbs.db
