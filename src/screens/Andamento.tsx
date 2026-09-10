@@ -152,7 +152,7 @@ export default function Andamento() {
         : 'ok'
   const meterNote =
     level === 'alto'
-      ? `${selected.medDays} giorni. Sopra la soglia indicativa — vale la pena parlarne col neurologo.`
+      ? `${selected.medDays} giorni. Sopra la soglia indicativa.`
       : level === 'medio'
         ? `${selected.medDays} giorni. Vicino alla soglia di ${MED_THRESHOLD}.`
         : `${selected.medDays} giorni. Sotto la soglia di attenzione.`
