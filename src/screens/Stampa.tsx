@@ -477,9 +477,12 @@ export default function Stampa() {
                         </div>
                       ))}
                     </div>
-                    <p className="report-cap">
-                      pallino pieno = intensità (verde lieve, ambra moderata, rosso severa) ·
-                      cerchio = giorno con farmaco
+                    <p className="report-cap rc-legend">
+                      <span className="rc-key sev-lieve" /> lieve
+                      <span className="rc-key sev-moderato" /> moderato
+                      <span className="rc-key sev-severo" /> severo
+                      <span className="rc-key sev-none" /> senza intensità
+                      <span className="rc-key rc-med" /> anello = ha preso un farmaco
                     </p>
                   </section>
                 )}

@@ -11,9 +11,9 @@ import {
 import type { Disability, Severity } from '../lib/types'
 
 const MAP: Record<string, { severity: Severity | null; disability: Disability | null }> = {
-  '1': { severity: 'lieve', disability: null },
-  '2': { severity: 'lieve', disability: 'lieve' },
-  '3': { severity: 'lieve', disability: 'moderata' },
+  '1': { severity: 'lieve', disability: 'lieve' },
+  '2': { severity: 'moderato', disability: 'lieve' },
+  '3': { severity: 'moderato', disability: 'moderata' },
   '4': { severity: 'severo', disability: 'moderata' },
   '5': { severity: 'severo', disability: 'elevata' },
 }
