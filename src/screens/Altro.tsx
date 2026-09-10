@@ -76,6 +76,10 @@ export default function Altro() {
       <button type="button" className="btn-logout" onClick={() => void logout()}>
         Esci
       </button>
+
+      <p className="app-version">
+        versione {__APP_VERSION__} · {__APP_SHA__} · {__APP_BUILD_DATE__}
+      </p>
     </section>
   )
 }

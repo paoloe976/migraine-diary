@@ -615,6 +615,14 @@ button {
   transform: scale(1.12);
 }
 
+.app-version {
+  margin: 40px 0 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
 .btn-logout {
   margin-top: 26px;
   border: 1px solid var(--hairline);

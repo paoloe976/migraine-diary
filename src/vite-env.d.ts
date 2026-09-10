@@ -13,3 +13,8 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+// Iniettate a build-time da vite.config.ts
+declare const __APP_VERSION__: string
+declare const __APP_SHA__: string
+declare const __APP_BUILD_DATE__: string
