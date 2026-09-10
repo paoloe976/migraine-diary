@@ -1050,6 +1050,10 @@ button {
   cursor: pointer;
 }
 
+.cal-head + .year-chips {
+  margin: -2px 0 14px;
+}
+
 .cal-stats {
   display: flex;
   gap: 16px;

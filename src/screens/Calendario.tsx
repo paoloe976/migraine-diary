@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../lib/auth'
 import { useShell } from '../components/AppShell'
-import { subscribeMonthEpisodes } from '../lib/data'
+import { getEarliestEpisodeDate, subscribeMonthEpisodes } from '../lib/data'
 import type { Episode, Severity } from '../lib/types'
 import { MONTHS, WEEKDAYS, monthGrid } from '../lib/calendar'
 import { SEVERITY_LABEL, cap, monthStats } from '../lib/format'
@@ -43,6 +43,12 @@ export default function Calendario() {
   const [month, setMonth] = useState(today.getMonth())
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
+  const [earliest, setEarliest] = useState<Date | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    getEarliestEpisodeDate(user.uid).then(setEarliest)
+  }, [user])
 
   useEffect(() => {
     if (!user) return
@@ -59,6 +65,16 @@ export default function Calendario() {
     const d = new Date(year, month + delta, 1)
     setYear(d.getFullYear())
     setMonth(d.getMonth())
+  }
+
+  const years: number[] = []
+  if (earliest) {
+    for (let y = earliest.getFullYear(); y <= today.getFullYear(); y += 1) years.push(y)
+  }
+
+  function goToYear(y: number) {
+    setYear(y)
+    if (y === today.getFullYear() && month > today.getMonth()) setMonth(today.getMonth())
   }
 
   const selectedEpisodes = selectedDay ? (byDay.get(selectedDay) ?? []) : []
@@ -78,6 +94,21 @@ export default function Calendario() {
           ›
         </button>
       </div>
+
+      {years.length > 1 && (
+        <div className="year-chips">
+          {years.map((y) => (
+            <button
+              type="button"
+              key={y}
+              className={y === year ? 'is-on' : undefined}
+              onClick={() => goToYear(y)}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="cal-stats">
         <span>
