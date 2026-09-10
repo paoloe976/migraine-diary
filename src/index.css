@@ -1274,8 +1274,7 @@ button {
   cursor: default;
 }
 
-.year-chips,
-.win-chips {
+.year-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
@@ -1283,12 +1282,29 @@ button {
 }
 
 .win-chips {
-  margin-top: 8px;
-  margin-bottom: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hairline);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.win-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.win-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
 }
 
 .year-chips button,
-.win-chips button {
+.win-opts button {
   border: 1px solid var(--hairline);
   background: var(--surface-2);
   color: var(--muted);
@@ -1301,7 +1317,7 @@ button {
 }
 
 .year-chips button.is-on,
-.win-chips button.is-on {
+.win-opts button.is-on {
   border-color: var(--accent);
   color: var(--text);
   background: var(--accent-dim);

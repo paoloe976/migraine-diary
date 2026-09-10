@@ -215,19 +215,6 @@ export default function Andamento() {
             </div>
           )}
 
-          <div className="win-chips">
-            {WINDOW_OPTIONS.map((n) => (
-              <button
-                type="button"
-                key={n}
-                className={win === n ? 'is-on' : undefined}
-                onClick={() => setWin(n)}
-              >
-                {n} mesi
-              </button>
-            ))}
-          </div>
-
           <div className="chart-card">
             <h2>Giorni con mal di testa al mese</h2>
             <p className="chart-cap">tocca un mese per cambiare il dettaglio</p>
@@ -311,6 +298,22 @@ export default function Andamento() {
                   <DrillList title="per farmaco" rows={selected.byMed} />
                 </div>
               )}
+            </div>
+
+            <div className="win-chips">
+              <span className="win-label">Mesi da visualizzare</span>
+              <div className="win-opts">
+                {WINDOW_OPTIONS.map((n) => (
+                  <button
+                    type="button"
+                    key={n}
+                    className={win === n ? 'is-on' : undefined}
+                    onClick={() => setWin(n)}
+                  >
+                    {n} mesi
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
