@@ -5,6 +5,7 @@ import { useDialog } from '../components/Dialog'
 import {
   addToProfileList,
   bulkImportEpisodes,
+  clearEpisodes,
   clearUserData,
   type ImportRow,
 } from '../lib/data'
@@ -113,6 +114,25 @@ export default function Import() {
     }
   }
 
+  async function doClearEpisodes() {
+    if (!user) return
+    const ok = await dialog.confirm({
+      message: `Cancellare tutti gli episodi di ${user.email}? Profilassi e questionari restano.`,
+      confirmLabel: 'Svuota episodi',
+      danger: true,
+    })
+    if (!ok) return
+    setBusy(true)
+    try {
+      const n = await clearEpisodes(user.uid)
+      addLog(`Svuotato: ${n} episodi. Profilassi e questionari intatti.`)
+    } catch (err) {
+      addLog(`Errore svuotamento: ${String(err)}`)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function doImport() {
     if (!user || !parsed) return
     setBusy(true)
@@ -139,9 +159,13 @@ export default function Import() {
       <div className="import-block">
         <h2>1 · Svuota</h2>
         <p>
-          Cancella tutti gli episodi, le profilassi e i questionari di questo account. Le liste
-          (tipi, farmaci, scatenanti) restano.
+          Per reimportare il diario dopo aver corretto la mappatura: svuota <b>solo gli episodi</b> e
+          tieni profilassi e questionari.
         </p>
+        <button type="button" className="btn-cancel" disabled={busy} onClick={doClearEpisodes}>
+          Svuota solo episodi
+        </button>
+        <p>Oppure azzera tutto (episodi + profilassi + questionari). Le liste restano.</p>
         <button type="button" className="btn-cancel" disabled={busy} onClick={doClear}>
           Svuota tutto
         </button>

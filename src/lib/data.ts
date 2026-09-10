@@ -387,6 +387,11 @@ async function deleteAll(col: ReturnType<typeof collection>): Promise<number> {
   return snap.docs.length
 }
 
+/** Cancella solo gli episodi. Profilassi, questionari e profilo restano. */
+export async function clearEpisodes(uid: string): Promise<number> {
+  return deleteAll(episodesCol(uid))
+}
+
 /** Cancella episodi, profilassi e questionari dell'utente. Il profilo resta. */
 export async function clearUserData(
   uid: string,
