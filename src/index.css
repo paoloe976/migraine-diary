@@ -1652,6 +1652,27 @@ button {
   letter-spacing: -0.01em;
 }
 
+.sheet-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.sheet-title .tick {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+}
+
 .saved-badge .tick {
   width: 22px;
   height: 22px;

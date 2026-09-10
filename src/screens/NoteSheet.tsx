@@ -41,7 +41,21 @@ export default function NoteSheet({ uid, noteId, isNew, onClose }: Props) {
     window.setTimeout(() => onClose(kept), 200)
   }
 
-  async function remove() {
+  async function discardOrDelete() {
+    if (isNew) {
+      const hasContent = !!draft && (draft.text.trim() !== '' || draft.tags.length > 0)
+      if (hasContent) {
+        const ok = await dialog.confirm({
+          message: 'Scartare questa nota?',
+          confirmLabel: 'Scarta',
+          danger: true,
+        })
+        if (!ok) return
+      }
+      void deleteDayNote(uid, noteId)
+      close(false)
+      return
+    }
     const ok = await dialog.confirm({
       message: 'Eliminare questa nota?',
       confirmLabel: 'Elimina',
@@ -83,11 +97,11 @@ export default function NoteSheet({ uid, noteId, isNew, onClose }: Props) {
         <div className="sheet-head">
           <div className="grabber" />
           <div className="sheet-head-row">
-            <span className={`saved-badge${isNew ? ' is-new' : ''}`}>
+            <span className="sheet-title">
               <span className="tick" aria-hidden="true">
-                {isNew ? '✓' : '✎'}
+                ✎
               </span>
-              {isNew ? 'Nota salvata' : 'Modifica nota'}
+              {isNew ? 'Nuova nota' : 'Modifica nota'}
             </span>
             <button type="button" className="sheet-x" onClick={() => close()} aria-label="Chiudi">
               ✕
@@ -145,8 +159,8 @@ export default function NoteSheet({ uid, noteId, isNew, onClose }: Props) {
             </div>
 
             <div className="sheet-actions">
-              <button type="button" className="btn-cancel" onClick={remove}>
-                Elimina
+              <button type="button" className="btn-cancel" onClick={discardOrDelete}>
+                {isNew ? 'Annulla' : 'Elimina'}
               </button>
               <button type="button" className="btn-done" onClick={() => close()}>
                 Fatto
