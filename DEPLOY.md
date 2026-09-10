@@ -11,12 +11,13 @@ Flusso di lavoro:
 
 ## Deploy manuale (senza CI)
 
+`firebase-tools` è una devDependency del progetto (niente installazione globale).
+Una volta sola: `npx firebase login`.
+
 ```bash
-npm run build
-firebase deploy --only hosting
+npm run deploy      # = npm run build && firebase deploy --only hosting
 ```
 
-Serve `firebase-tools` (`npm i -g firebase-tools`) e `firebase login`.
 Le variabili `VITE_FIREBASE_*` vengono da `.env.local` (vedi `.env.example`).
 
 ## Configurazione della GitHub Action (una tantum)
