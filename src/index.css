@@ -1243,7 +1243,7 @@ button {
 }
 
 .day.today {
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 26%, var(--surface));
   color: var(--text);
 }
 
