@@ -105,7 +105,7 @@ export default function Import() {
     try {
       const c = await clearUserData(user.uid)
       addLog(
-        `Svuotato: ${c.episodes} episodi, ${c.prophylaxis} profilassi, ${c.questionnaires} questionari.`,
+        `Svuotato: ${c.episodes} episodi, ${c.notes} note, ${c.prophylaxis} profilassi, ${c.questionnaires} questionari.`,
       )
     } catch (err) {
       addLog(`Errore svuotamento: ${String(err)}`)

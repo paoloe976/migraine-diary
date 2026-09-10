@@ -57,6 +57,20 @@ export interface Prophylaxis {
 
 export type ProphylaxisPatch = Partial<Omit<Prophylaxis, 'id' | 'createdAt' | 'updatedAt'>>
 
+/** Una nota di giornata: contesto non legato a un attacco (né alla profilassi). */
+export interface DayNote {
+  id: string
+  /** giorno a cui si riferisce (ora fissata a mezzogiorno) */
+  date: Date
+  text: string
+  /** etichette rapide, es. "ciclo", "sonno", "stress" */
+  tags: string[]
+  createdAt: Date | null
+  updatedAt: Date | null
+}
+
+export type DayNotePatch = Partial<Pick<DayNote, 'date' | 'text' | 'tags'>>
+
 export type QKind = 'midas' | 'hit6' | 'headwork'
 
 /** Una compilazione salvata di un questionario. */

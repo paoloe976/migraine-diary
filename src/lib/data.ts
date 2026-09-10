@@ -40,6 +40,8 @@ import {
 } from 'firebase/firestore'
 import { auth, db } from './firebase'
 import type {
+  DayNote,
+  DayNotePatch,
   Episode,
   EpisodePatch,
   Profile,
@@ -375,6 +377,101 @@ export function subscribeQuestionnaires(
   )
 }
 
+// ========================= Note di giornata ==========================
+
+/** Etichette rapide suggerite per le note (l'utente può aggiungerne di sue). */
+export const DEFAULT_NOTE_TAGS = [
+  'ciclo',
+  'sonno',
+  'stress',
+  'farmaco saltato',
+  'viaggio',
+  'malessere',
+]
+
+const notesCol = (uid: string) => collection(db, 'users', uid, 'notes')
+const noteRef = (uid: string, id: string) => doc(db, 'users', uid, 'notes', id)
+
+function toDayNote(snap: QueryDocumentSnapshot<DocumentData>): DayNote {
+  const d = snap.data()
+  return {
+    id: snap.id,
+    date: toDate(d.date) ?? new Date(),
+    text: d.text ?? '',
+    tags: d.tags ?? [],
+    createdAt: toDate(d.createdAt),
+    updatedAt: toDate(d.updatedAt),
+  }
+}
+
+/** Crea una nota vuota per un giorno e ne restituisce subito l'id (fire-and-forget). */
+export function createDayNote(uid: string, date: Date = new Date()): string {
+  const at = new Date(date)
+  at.setHours(12, 0, 0, 0)
+  const ref = doc(notesCol(uid))
+  void setDoc(ref, {
+    date: Timestamp.fromDate(at),
+    text: '',
+    tags: [],
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+  return ref.id
+}
+
+export function updateDayNote(uid: string, id: string, patch: DayNotePatch): Promise<void> {
+  const data: DocumentData = { ...patch, updatedAt: serverTimestamp() }
+  if (patch.date instanceof Date) {
+    const at = new Date(patch.date)
+    at.setHours(12, 0, 0, 0)
+    data.date = Timestamp.fromDate(at)
+  }
+  return updateDoc(noteRef(uid, id), data)
+}
+
+export const deleteDayNote = (uid: string, id: string): Promise<void> =>
+  deleteDoc(noteRef(uid, id))
+
+export function subscribeDayNote(
+  uid: string,
+  id: string,
+  cb: (n: DayNote | null) => void,
+): Unsubscribe {
+  return onSnapshot(noteRef(uid, id), (snap) =>
+    cb(snap.exists() ? toDayNote(snap as QueryDocumentSnapshot<DocumentData>) : null),
+  )
+}
+
+export function subscribeMonthNotes(
+  uid: string,
+  year: number,
+  month0: number,
+  cb: (notes: DayNote[]) => void,
+): Unsubscribe {
+  const q = query(
+    notesCol(uid),
+    where('date', '>=', Timestamp.fromDate(new Date(year, month0, 1))),
+    where('date', '<', Timestamp.fromDate(new Date(year, month0 + 1, 1))),
+    orderBy('date', 'asc'),
+  )
+  return onSnapshot(q, (s) => cb(s.docs.map(toDayNote)))
+}
+
+export function subscribeNotesInRange(
+  uid: string,
+  from: Date,
+  to: Date,
+  cb: (notes: DayNote[]) => void,
+): Unsubscribe {
+  const q = query(
+    notesCol(uid),
+    where('date', '>=', Timestamp.fromDate(from)),
+    where('date', '<', Timestamp.fromDate(to)),
+    orderBy('date', 'asc'),
+  )
+  return onSnapshot(q, (s) => cb(s.docs.map(toDayNote)))
+}
+
 // ==================== Manutenzione / import ====================
 
 async function deleteAll(col: ReturnType<typeof collection>): Promise<number> {
@@ -392,12 +489,13 @@ export async function clearEpisodes(uid: string): Promise<number> {
   return deleteAll(episodesCol(uid))
 }
 
-/** Cancella episodi, profilassi e questionari dell'utente. Il profilo resta. */
+/** Cancella episodi, note, profilassi e questionari dell'utente. Il profilo resta. */
 export async function clearUserData(
   uid: string,
-): Promise<{ episodes: number; prophylaxis: number; questionnaires: number }> {
+): Promise<{ episodes: number; notes: number; prophylaxis: number; questionnaires: number }> {
   return {
     episodes: await deleteAll(episodesCol(uid)),
+    notes: await deleteAll(notesCol(uid)),
     prophylaxis: await deleteAll(prophylaxisCol(uid)),
     questionnaires: await deleteAll(questionnairesCol(uid)),
   }

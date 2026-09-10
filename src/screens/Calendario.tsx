@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../lib/auth'
 import { useShell } from '../components/AppShell'
-import { getEarliestEpisodeDate, subscribeMonthEpisodes } from '../lib/data'
-import type { Episode, Severity } from '../lib/types'
+import {
+  getEarliestEpisodeDate,
+  subscribeMonthEpisodes,
+  subscribeMonthNotes,
+} from '../lib/data'
+import type { DayNote, Episode, Severity } from '../lib/types'
 import { MONTHS, WEEKDAYS, monthGrid } from '../lib/calendar'
 import { SEVERITY_LABEL, cap, monthStats } from '../lib/format'
 import { locationSummary } from '../components/HeadMap'
@@ -37,11 +41,12 @@ function detailLine(e: Episode): string {
 
 export default function Calendario() {
   const { user } = useAuth()
-  const { openLog, openLogForDate } = useShell()
+  const { openLog, openLogForDate, openNote, openNoteForDate } = useShell()
   const today = useMemo(() => new Date(), [])
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
   const [episodes, setEpisodes] = useState<Episode[]>([])
+  const [notes, setNotes] = useState<DayNote[]>([])
   const [selectedDay, setSelectedDay] = useState<number | null>(null)
   const [earliest, setEarliest] = useState<Date | null>(null)
 
@@ -53,10 +58,23 @@ export default function Calendario() {
   useEffect(() => {
     if (!user) return
     setSelectedDay(null)
-    return subscribeMonthEpisodes(user.uid, year, month, setEpisodes)
+    const u1 = subscribeMonthEpisodes(user.uid, year, month, setEpisodes)
+    const u2 = subscribeMonthNotes(user.uid, year, month, setNotes)
+    return () => {
+      u1()
+      u2()
+    }
   }, [user, year, month])
 
   const byDay = useMemo(() => episodesByDay(episodes, month), [episodes, month])
+  const notesByDay = useMemo(() => {
+    const map = new Map<number, DayNote[]>()
+    for (const n of notes) {
+      const d = n.date.getDate()
+      map.set(d, [...(map.get(d) ?? []), n])
+    }
+    return map
+  }, [notes])
   const grid = monthGrid(year, month)
   const stats = monthStats(episodes)
   const isCurrentMonth = year === today.getFullYear() && month === today.getMonth()
@@ -78,6 +96,7 @@ export default function Calendario() {
   }
 
   const selectedEpisodes = selectedDay ? (byDay.get(selectedDay) ?? []) : []
+  const selectedNotes = selectedDay ? (notesByDay.get(selectedDay) ?? []) : []
 
   return (
     <section className="screen">
@@ -146,6 +165,7 @@ export default function Calendario() {
                 isToday ? 'today' : '',
                 day === selectedDay ? 'is-sel' : '',
                 eps.length > 0 ? 'has-episode' : '',
+                notesByDay.has(day) ? 'has-note' : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -175,38 +195,67 @@ export default function Calendario() {
             )}
           </h2>
 
-          {selectedEpisodes.length === 0 ? (
-            <p className="d-empty">Nessun episodio in questa data.</p>
-          ) : (
-            selectedEpisodes.map((e) => (
-              <button
-                key={e.id}
-                type="button"
-                className="d-ep"
-                onClick={() => openLog(e.id)}
-              >
-                <span className={`sev-dot sev-${e.severity ?? 'none'}`} aria-hidden="true" />
-                <span className="d-ep-main">
-                  <b>
-                    {e.severity ? SEVERITY_LABEL[e.severity] : 'Episodio'}
-                    {e.type ? ` · ${e.type}` : ''}
-                  </b>
-                  <p>{detailLine(e)}</p>
-                </span>
-                <span className="chev" aria-hidden="true">
-                  ›
-                </span>
-              </button>
-            ))
+          {selectedEpisodes.length === 0 && selectedNotes.length === 0 && (
+            <p className="d-empty">Niente in questa data.</p>
           )}
 
-          <button
-            type="button"
-            className="d-add"
-            onClick={() => openLogForDate(new Date(year, month, selectedDay))}
-          >
-            + Aggiungi episodio
-          </button>
+          {selectedEpisodes.map((e) => (
+            <button
+              key={e.id}
+              type="button"
+              className="d-ep"
+              onClick={() => openLog(e.id)}
+            >
+              <span className={`sev-dot sev-${e.severity ?? 'none'}`} aria-hidden="true" />
+              <span className="d-ep-main">
+                <b>
+                  {e.severity ? SEVERITY_LABEL[e.severity] : 'Episodio'}
+                  {e.type ? ` · ${e.type}` : ''}
+                </b>
+                <p>{detailLine(e)}</p>
+              </span>
+              <span className="chev" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          ))}
+
+          {selectedNotes.map((n) => (
+            <button
+              key={n.id}
+              type="button"
+              className="d-ep d-note"
+              onClick={() => openNote(n.id)}
+            >
+              <span className="d-note-icon" aria-hidden="true">
+                ✎
+              </span>
+              <span className="d-ep-main">
+                <b>{n.text || 'Nota'}</b>
+                {n.tags.length > 0 && <p>{n.tags.join(' · ')}</p>}
+              </span>
+              <span className="chev" aria-hidden="true">
+                ›
+              </span>
+            </button>
+          ))}
+
+          <div className="d-actions">
+            <button
+              type="button"
+              className="d-add"
+              onClick={() => openLogForDate(new Date(year, month, selectedDay))}
+            >
+              + Episodio
+            </button>
+            <button
+              type="button"
+              className="d-add"
+              onClick={() => openNoteForDate(new Date(year, month, selectedDay))}
+            >
+              + Nota
+            </button>
+          </div>
         </div>
       )}
 

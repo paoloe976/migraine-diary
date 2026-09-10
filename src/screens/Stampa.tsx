@@ -4,10 +4,17 @@ import { useAuth } from '../lib/auth'
 import {
   getEarliestEpisodeDate,
   subscribeEpisodesInRange,
+  subscribeNotesInRange,
   subscribeProphylaxis,
   subscribeQuestionnaires,
 } from '../lib/data'
-import type { Episode, Prophylaxis, QuestionnaireEntry, Severity } from '../lib/types'
+import type {
+  DayNote,
+  Episode,
+  Prophylaxis,
+  QuestionnaireEntry,
+  Severity,
+} from '../lib/types'
 import { QUESTIONNAIRES } from '../lib/questionnaires'
 import {
   MED_EFFICACY_LABEL,
@@ -198,6 +205,7 @@ export default function Stampa() {
   const [earliest, setEarliest] = useState<Date | null>(null)
   const [showCalendar, setShowCalendar] = useState(true)
   const [episodes, setEpisodes] = useState<Episode[]>([])
+  const [notes, setNotes] = useState<DayNote[]>([])
   const [prophylaxis, setProphylaxis] = useState<Prophylaxis[]>([])
   const [questionnaires, setQuestionnaires] = useState<QuestionnaireEntry[]>([])
 
@@ -225,6 +233,11 @@ export default function Stampa() {
   useEffect(() => {
     if (!user) return
     return subscribeEpisodesInRange(user.uid, rangeStart, rangeEnd, setEpisodes)
+  }, [user, rangeStart, rangeEnd])
+
+  useEffect(() => {
+    if (!user) return
+    return subscribeNotesInRange(user.uid, rangeStart, rangeEnd, setNotes)
   }, [user, rangeStart, rangeEnd])
 
   const sorted = useMemo(
@@ -445,6 +458,31 @@ export default function Stampa() {
                           .join(' · ')}
                       </p>
                     </div>
+                  </section>
+                )}
+
+                {notes.length > 0 && (
+                  <section className="report-section report-notes">
+                    <h2>Note e contesto</h2>
+                    <ul>
+                      {notes.map((n) => (
+                        <li key={n.id}>
+                          <span className="rn-date">
+                            {n.date.toLocaleDateString('it-IT', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: '2-digit',
+                            })}
+                          </span>
+                          <span className="rn-body">
+                            {n.text}
+                            {n.tags.length > 0 && (
+                              <span className="rn-tags"> [{n.tags.join(', ')}]</span>
+                            )}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
                   </section>
                 )}
 

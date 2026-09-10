@@ -11,7 +11,7 @@ import { cap, episodeSubtitle, episodeTitle, monthStats } from '../lib/format'
 
 export default function Home() {
   const { user } = useAuth()
-  const { openLog, lastLoggedId, clearLastLogged } = useShell()
+  const { openLog, openNote, lastLoggedId, clearLastLogged } = useShell()
   const [recent, setRecent] = useState<Episode[]>([])
   const [monthEpisodes, setMonthEpisodes] = useState<Episode[]>([])
 
@@ -78,6 +78,10 @@ export default function Home() {
           Ho mal di testa
           <small>registra un episodio</small>
         </span>
+      </button>
+
+      <button type="button" className="note-btn" onClick={() => openNote()}>
+        <span aria-hidden="true">✎</span> Annota qualcosa
       </button>
 
       <div className="card">
