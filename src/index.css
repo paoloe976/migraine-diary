@@ -1274,14 +1274,21 @@ button {
   cursor: default;
 }
 
-.year-chips {
+.year-chips,
+.win-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
   margin-bottom: 4px;
 }
 
-.year-chips button {
+.win-chips {
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+.year-chips button,
+.win-chips button {
   border: 1px solid var(--hairline);
   background: var(--surface-2);
   color: var(--muted);
@@ -1293,7 +1300,8 @@ button {
   cursor: pointer;
 }
 
-.year-chips button.is-on {
+.year-chips button.is-on,
+.win-chips button.is-on {
   border-color: var(--accent);
   color: var(--text);
   background: var(--accent-dim);

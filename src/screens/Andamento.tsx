@@ -5,7 +5,7 @@ import type { Episode } from '../lib/types'
 import { cap } from '../lib/format'
 import { MONTHS } from '../lib/calendar'
 
-const WINDOW = 6
+const WINDOW_OPTIONS = [6, 12, 24]
 /** Soglia indicativa per la cefalea da uso eccessivo di farmaci (triptani). */
 const MED_THRESHOLD = 10
 const METER_MAX = 15
@@ -31,9 +31,15 @@ function shift(y: number, m: number, n: number): { y: number; m: number } {
   return { y: d.getFullYear(), m: d.getMonth() }
 }
 
-function buildBuckets(episodes: Episode[], endY: number, endM: number, now: Date): MonthBucket[] {
-  const slots = Array.from({ length: WINDOW }, (_, i) => {
-    const { y, m } = shift(endY, endM, -(WINDOW - 1 - i))
+function buildBuckets(
+  episodes: Episode[],
+  endY: number,
+  endM: number,
+  now: Date,
+  window: number,
+): MonthBucket[] {
+  const slots = Array.from({ length: window }, (_, i) => {
+    const { y, m } = shift(endY, endM, -(window - 1 - i))
     return {
       key: keyOf(y, m),
       year: y,
@@ -82,6 +88,7 @@ export default function Andamento() {
   const now = useMemo(() => new Date(), [])
 
   const [end, setEnd] = useState({ y: now.getFullYear(), m: now.getMonth() })
+  const [win, setWin] = useState(6)
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const [earliest, setEarliest] = useState<Date | null>(null)
@@ -93,15 +100,15 @@ export default function Andamento() {
 
   useEffect(() => {
     if (!user) return
-    const start = shift(end.y, end.m, -(WINDOW - 1))
+    const start = shift(end.y, end.m, -(win - 1))
     const from = new Date(start.y, start.m, 1)
     const to = new Date(end.y, end.m + 1, 1)
     return subscribeEpisodesInRange(user.uid, from, to, setEpisodes)
-  }, [user, end])
+  }, [user, end, win])
 
   const buckets = useMemo(
-    () => buildBuckets(episodes, end.y, end.m, now),
-    [episodes, end, now],
+    () => buildBuckets(episodes, end.y, end.m, now, win),
+    [episodes, end, now, win],
   )
 
   // selezione: mantiene il mese scelto se ancora in finestra, altrimenti l'ultimo
@@ -139,10 +146,14 @@ export default function Andamento() {
   const padB = 26
   const padT = 12
   const baseline = H - padB
-  const slot = (W - padL) / WINDOW
-  const barW = Math.min(24, slot * 0.5)
+  const slot = (W - padL) / win
+  const barW = Math.min(24, slot * 0.62)
+  const labelEvery = win <= 6 ? 1 : win <= 12 ? 2 : 3
+  const showValues = win <= 12
+  const last = buckets[buckets.length - 1]
+  const first = buckets[0]
 
-  const rangeLabel = `${buckets[0].label} ${buckets[0].year !== buckets[WINDOW - 1].year ? buckets[0].year : ''} – ${buckets[WINDOW - 1].label} ${buckets[WINDOW - 1].year}`.replace('  ', ' ')
+  const rangeLabel = `${first.label} ${first.year !== last.year ? first.year : ''} – ${last.label} ${last.year}`.replace('  ', ' ')
 
   const level =
     selected.medDays >= MED_THRESHOLD
@@ -204,6 +215,19 @@ export default function Andamento() {
             </div>
           )}
 
+          <div className="win-chips">
+            {WINDOW_OPTIONS.map((n) => (
+              <button
+                type="button"
+                key={n}
+                className={win === n ? 'is-on' : undefined}
+                onClick={() => setWin(n)}
+              >
+                {n} mesi
+              </button>
+            ))}
+          </div>
+
           <div className="chart-card">
             <h2>Giorni con mal di testa al mese</h2>
             <p className="chart-cap">tocca un mese per cambiare il dettaglio</p>
@@ -257,16 +281,18 @@ export default function Andamento() {
                       y={b.headacheDays > 0 ? y : baseline - 2}
                       width={barW}
                       height={b.headacheDays > 0 ? h : 2}
-                      rx={3}
+                      rx={Math.min(3, barW / 3)}
                     />
-                    {b.headacheDays > 0 && (
+                    {b.headacheDays > 0 && (showValues || on) && (
                       <text className="bar-value" x={cx} y={y - 5} textAnchor="middle">
                         {b.headacheDays}
                       </text>
                     )}
-                    <text className="axis" x={cx} y={H - 9} textAnchor="middle">
-                      {b.label}
-                    </text>
+                    {(buckets.length - 1 - i) % labelEvery === 0 && (
+                      <text className="axis" x={cx} y={H - 9} textAnchor="middle">
+                        {b.label}
+                      </text>
+                    )}
                   </g>
                 )
               })}
