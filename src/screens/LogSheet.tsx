@@ -208,12 +208,23 @@ export default function LogSheet({ uid, episodeId, isNew, onClose }: Props) {
                         key={d}
                         type="button"
                         className={`chip${draft.duration === d ? ' is-on' : ''}`}
-                        onClick={() => patch({ duration: draft.duration === d ? null : d })}
+                        onClick={() =>
+                          patch(
+                            draft.duration === d
+                              ? { duration: null, end: null }
+                              : { duration: d },
+                          )
+                        }
                       >
                         {d}
                       </button>
                     ))}
                   </div>
+                  {draft.end && (
+                    <p className="field-support">
+                      Attacco concluso — togli la durata per riaprirlo
+                    </p>
+                  )}
                 </Field>
 
                 <Field
