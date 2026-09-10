@@ -3,47 +3,43 @@
 Hosting: **Firebase Hosting** (progetto `migraine-diary-2026`).
 URL di produzione: <https://migraine-diary-2026.web.app>
 
-Flusso di lavoro:
+## Flusso di lavoro
 
 - si lavora su **`dev`** (push liberi, nessun deploy);
-- il **merge `dev` → `master`** è il rilascio: la GitHub Action
-  [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) ricostruisce e pubblica.
-
-## Deploy manuale (senza CI)
-
-`firebase-tools` è una devDependency del progetto (niente installazione globale).
-Una volta sola: `npx firebase login`.
+- il rilascio è **manuale**, e si deploya **da `master`** così che ciò che è
+  online coincida con `master` (il numero di versione in "Altro" viene da
+  `git rev-list --count HEAD`).
 
 ```bash
-npm run deploy      # = npm run build && firebase deploy --only hosting
+git checkout master && git merge dev && git push
+npm run deploy        # = npm run build && firebase deploy --only hosting
+git checkout dev
+```
+
+## Prerequisiti (una tantum)
+
+`firebase-tools` è una devDependency (niente installazione globale). Serve solo:
+
+```bash
+npx firebase login          # account paoloe976@gmail.com
 ```
 
 Le variabili `VITE_FIREBASE_*` vengono da `.env.local` (vedi `.env.example`).
 
-## Configurazione della GitHub Action (una tantum)
+## Rollback
 
-La Action builda su runner puliti, quindi le servono i segreti/variabili nel repo
-GitHub → **Settings → Secrets and variables → Actions**:
+Console Firebase → Hosting → cronologia dei rilasci → "Ripristina" sulla
+versione precedente. Nessun rebuild.
 
-**Secret** (sensibile):
+## GitHub Action (non attiva — solo se un giorno servirà)
 
-| nome | valore |
-|---|---|
-| `FIREBASE_SERVICE_ACCOUNT` | contenuto JSON di una chiave service-account con ruolo *Firebase Hosting Admin* |
+Utile solo con contributori esterni (merge di una PR che pubblica da solo) o
+deploy da più macchine. Per attivarla:
 
-La chiave si genera con `firebase init hosting:github` (crea e carica il secret da
-sola, chiamandolo `FIREBASE_SERVICE_ACCOUNT_MIGRAINE_DIARY_2026` — in tal caso
-aggiornare il nome in `deploy.yml`), oppure a mano dalla console Google Cloud.
-
-**Variables** (non sensibili — finiscono comunque nel bundle client):
-
-| nome |
-|---|
-| `VITE_FIREBASE_API_KEY` |
-| `VITE_FIREBASE_AUTH_DOMAIN` |
-| `VITE_FIREBASE_PROJECT_ID` |
-| `VITE_FIREBASE_STORAGE_BUCKET` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` |
-| `VITE_FIREBASE_APP_ID` |
-
-Valori identici a quelli in `.env.local`.
+1. `npx firebase init hosting:github` — crea il service account e carica da solo
+   il secret su GitHub (`FIREBASE_SERVICE_ACCOUNT_MIGRAINE_DIARY_2026`) e i file
+   workflow sotto `.github/workflows/`.
+2. Aggiungere come **repository variables** (GitHub → Settings → Secrets and
+   variables → Actions → Variables) le 6 `VITE_FIREBASE_*` con i valori di
+   `.env.local`, e nel workflow passarle come `env:` allo step di build, più
+   `fetch-depth: 0` allo step di checkout (serve al numero di versione).
